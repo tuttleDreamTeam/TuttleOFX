@@ -12,17 +12,14 @@ namespace seamcarving {
 
 template<typename Scalar>
 struct SeamCarvingProcessParams
-{
-	bool                                       _changeCenter;
-	boost::gil::point2<Scalar>                 _centerPoint;
-
-	SamplerProcessParams                       _samplerProcessParams;
+{;
+	boost::gil::point2<Scalar>                 _outputSize;
 };
 
 /**
  * @brief SeamCarving plugin
  */
-class SeamCarvingPlugin : public SamplerPlugin
+class SeamCarvingPlugin : public ImageEffectGilPlugin
 {
 public:
 	typedef float Scalar;
@@ -34,7 +31,6 @@ public:
 public:
 	SeamCarvingProcessParams<Scalar> getProcessParams( const OfxPointD& renderScale = OFX::kNoRenderScale ) const;
 
-	void updateVisibleTools();
 
 	void changedParam          ( const OFX::InstanceChangedArgs &args, const std::string &paramName );
 
@@ -45,20 +41,7 @@ public:
 	void render                ( const OFX::RenderArguments &args );
 
 public:
-	OFX::ChoiceParam*       _paramMode;
-
-	OFX::ChoiceParam*       _paramFormat;
-
 	OFX::Int2DParam*        _paramSize;
-	OFX::IntParam*          _paramSizeWidth;
-	OFX::IntParam*          _paramSizeHeight;
-	OFX::BooleanParam*      _paramSizeKeepRatio;
-	OFX::ChoiceParam*       _paramSizeOrientation;
-	
-	OFX::Double2DParam*     _paramScale;
-
-	OFX::BooleanParam*      _paramCenter;
-	OFX::Double2DParam*     _paramCenterPoint;
 };
 
 }
