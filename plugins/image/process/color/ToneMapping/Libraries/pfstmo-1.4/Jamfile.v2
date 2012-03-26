@@ -1,0 +1,60 @@
+###############################################################################
+## Main BJam makefile for libpfstmo library
+###############################################################################
+
+###############################################################################
+# Global project requirements
+###############################################################################
+project
+	: requirements
+		<include>.
+                <include>src/pfstmo
+		# disabling warning as error as we are not responsible for this code
+		<warnings-as-errors>off
+		<warnings>off
+                <define>DEBUG_STR="\"if\(1\); else cerr\""
+	: usage-requirements
+                <include>src/pfstmo
+                <include>src/drago03
+                <include>src/durand02
+                <include>src/durand02
+                <include>src/fattal02
+                <include>src/fattal02
+                <include>src/mantiuk06
+                <include>src/mantiuk08
+                <include>src/pattanaik00
+                <include>src/reinhard02
+                <include>src/reinhard02
+                <include>src/reinhard05
+	: build-dir $(BUILD)/3rdParty/pfstools
+	;
+
+###############################################################################
+# libpng library
+###############################################################################
+alias headers : [ glob-tree *.h ] ;
+
+lib pfstmo :
+        [ glob  src/drago03/tmo_drago03.cpp
+                src/durand02/bilateral.cpp
+                src/durand02/tmo_durand02.cpp
+                src/fattal02/pde.cpp
+                src/fattal02/tmo_fattal02.cpp
+                src/mantiuk06/contrast_domain.cpp
+               #src/mantiuk08/
+                src/pattanaik00/tmo_pattanaik00.cpp
+                src/reinhard02/tmo_reinhard02.cpp
+                src/reinhard02/approx.cpp
+                src/reinhard05/tmo_reinhard05.cpp
+        ]
+        ../pfstools-1.8.5/<link>static
+	;
+
+install dist_src
+	:
+                pfstmo
+	:
+		<variant>debug:<location>$(DIST_DEBUG)/lib
+		<variant>release:<location>$(DIST_RELEASE)/lib
+		<install-type>LIB
+	;

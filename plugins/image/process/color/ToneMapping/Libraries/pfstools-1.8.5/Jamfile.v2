@@ -1,0 +1,36 @@
+###############################################################################
+## Main BJam makefile for libpfstools library
+###############################################################################
+
+###############################################################################
+# Global project requirements
+###############################################################################
+project
+	: requirements
+		<include>.
+		<include>src/pfs
+		# disabling warning as error as we are not responsible for this code
+		<warnings-as-errors>off
+		<warnings>off
+	: usage-requirements
+		<include>src/pfs
+	: build-dir $(BUILD)/3rdParty/pfstools
+	;
+
+###############################################################################
+# libpng library
+###############################################################################
+alias headers : [ glob-tree *.h ] ;
+
+lib pfstools :
+	[ glob src/pfs/*.cpp ]
+	;
+
+install dist_src
+	:
+		pfstools
+	:
+		<variant>debug:<location>$(DIST_DEBUG)/lib
+		<variant>release:<location>$(DIST_RELEASE)/lib
+		<install-type>LIB
+	;
