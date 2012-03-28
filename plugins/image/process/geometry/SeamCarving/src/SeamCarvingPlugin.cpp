@@ -138,9 +138,38 @@ bool SeamCarvingPlugin::isIdentity( const OFX::RenderArguments& args, OFX::Clip*
  * @brief The overridden render function
  * @param[in]   args     Rendering parameters
  */
+
 void SeamCarvingPlugin::render( const OFX::RenderArguments &args )
 {
-	doGilRender<SeamCarvingProcess>( *this, args );
+        // instantiate the render code based on the pixel depth of the dst clip
+        OFX::EBitDepth bitDepth         = _clipDst->getPixelDepth();
+        OFX::EPixelComponent components = _clipDst->getPixelComponents();
+
+	switch( components )
+        {
+                // cas du RGBA, a choisir ceux que vous voulez
+                // et dis à gil d'utiliser uniquement les vues rgba32f_view_t, rgba32_view_t rgb16_view_t et rgb8_view_t
+                // et la fonction multiThreadProcessImages (dans le .tcc) sera compilé uniquement avec ces templates
+
+                case OFX::ePixelComponentRGBA:
+                {
+                        doGilRender<SeamCarvingProcess, false, boost::gil::rgba_layout_t>( *this, args, bitDepth );
+                        return;
+                }
+
+                case OFX::ePixelComponentRGB:
+
+                case OFX::ePixelComponentAlpha:
+
+                case OFX::ePixelComponentCustom:
+
+                case OFX::ePixelComponentNone:
+                {
+                        BOOST_THROW_EXCEPTION( exception::Unsupported()
+                                << exception::user() + "Pixel components (" + mapPixelComponentEnumToString(components) + ") not supported by the plugin." );
+                }
+        }
+        BOOST_THROW_EXCEPTION( exception::Unknown() );
 }
 
 
