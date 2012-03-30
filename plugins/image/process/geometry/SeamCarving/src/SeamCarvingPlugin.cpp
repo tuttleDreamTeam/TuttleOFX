@@ -22,13 +22,17 @@ SeamCarvingPlugin::SeamCarvingPlugin( OfxImageEffectHandle handle )
 	: ImageEffectGilPlugin( handle )
 {
 	_paramSize            = fetchInt2DParam    ( kParamSize );
-
+	_mapClip        = fetchClip ( kOfxImageEffectMapSourceClipName );
 }
 
 
 SeamCarvingProcessParams<SeamCarvingPlugin::Scalar> SeamCarvingPlugin::getProcessParams( const OfxPointD& renderScale ) const
 {
 	SeamCarvingProcessParams<Scalar> params;
+	params._clipMap    = _mapClip;
+	OfxPointI size = _paramSize->getValue();
+	params._outputSize.x = size.x;
+	params._outputSize.y = size.y;
 
 	return params;
 }
@@ -142,8 +146,8 @@ bool SeamCarvingPlugin::isIdentity( const OFX::RenderArguments& args, OFX::Clip*
 void SeamCarvingPlugin::render( const OFX::RenderArguments &args )
 {
         // instantiate the render code based on the pixel depth of the dst clip
-        OFX::EBitDepth bitDepth         = _clipDst->getPixelDepth();
-        OFX::EPixelComponent components = _clipDst->getPixelComponents();
+        OFX::EBitDepth bitDepth         = _clipSrc->getPixelDepth();
+        OFX::EPixelComponent components = _clipSrc->getPixelComponents();
 
 	switch( components )
         {
@@ -154,12 +158,23 @@ void SeamCarvingPlugin::render( const OFX::RenderArguments &args )
                 case OFX::ePixelComponentRGBA:
                 {
                         doGilRender<SeamCarvingProcess, false, boost::gil::rgba_layout_t>( *this, args, bitDepth );
+			TUTTLE_COUT("OFX::ePixelComponentRGBA");
                         return;
                 }
 
                 case OFX::ePixelComponentRGB:
+		{
+                        doGilRender<SeamCarvingProcess, false, boost::gil::rgb_layout_t>( *this, args, bitDepth );
+			TUTTLE_COUT("OFX::ePixelComponentRGB");
+                        return;
+                }
 
                 case OFX::ePixelComponentAlpha:
+		{
+                        doGilRender<SeamCarvingProcess, false, boost::gil::gray_layout_t>( *this, args, bitDepth );
+			TUTTLE_COUT("OFX::ePixelComponentAlpha");
+                        return;
+                }
 
                 case OFX::ePixelComponentCustom:
 

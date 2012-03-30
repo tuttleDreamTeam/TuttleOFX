@@ -14,6 +14,7 @@ template<typename Scalar>
 struct SeamCarvingProcessParams
 {;
 	boost::gil::point2<Scalar>                 _outputSize;
+	OFX::Clip* _clipMap;
 };
 
 /**
@@ -24,6 +25,8 @@ class SeamCarvingPlugin : public ImageEffectGilPlugin
 public:
 	typedef float Scalar;
 	typedef boost::gil::point2<double> Point2;
+	OFX::Clip* _mapClip;
+	
 
 public:
 	SeamCarvingPlugin( OfxImageEffectHandle handle );

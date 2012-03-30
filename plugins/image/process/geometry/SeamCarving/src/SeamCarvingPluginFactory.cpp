@@ -45,15 +45,19 @@ void SeamCarvingPluginFactory::describe( OFX::ImageEffectDescriptor& desc )
 void SeamCarvingPluginFactory::describeInContext( OFX::ImageEffectDescriptor& desc, OFX::EContext context )
 {
         OFX::ClipDescriptor* srcClip = desc.defineClip( kOfxImageEffectSimpleSourceClipName );
-        //srcClip->addSupportedComponent( OFX::ePixelComponentRGBA );
-        //srcClip->addSupportedComponent( OFX::ePixelComponentRGB );
+        srcClip->addSupportedComponent( OFX::ePixelComponentRGBA );
+        srcClip->addSupportedComponent( OFX::ePixelComponentRGB );
         srcClip->addSupportedComponent( OFX::ePixelComponentAlpha );
         srcClip->setSupportsTiles( kSupportTiles );
-
-        // Create the mandated output clip
+	
+	OFX::ClipDescriptor* srcClipG = desc.defineClip( kOfxImageEffectMapSourceClipName );
+        srcClipG->addSupportedComponent( OFX::ePixelComponentAlpha );
+        srcClipG->setSupportsTiles( kSupportTiles );
+	
+	// Create the mandated output clip
         OFX::ClipDescriptor* dstClip = desc.defineClip( kOfxImageEffectOutputClipName );
-        //dstClip->addSupportedComponent( OFX::ePixelComponentRGBA );
-        //dstClip->addSupportedComponent( OFX::ePixelComponentRGB );
+        dstClip->addSupportedComponent( OFX::ePixelComponentRGBA );
+        dstClip->addSupportedComponent( OFX::ePixelComponentRGB );
         dstClip->addSupportedComponent( OFX::ePixelComponentAlpha );
         dstClip->setSupportsTiles( kSupportTiles );
 
