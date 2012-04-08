@@ -8,6 +8,13 @@ namespace plugin {
 namespace toneMapping {
 
 const std::string kParamToneOperator  = "operator";
+/*
+//a group of parameters for each algo ???
+static const std::string kParamdrago03Group = "drago03Group";
+static const std::string kParampattanaik00Group = "pattanaik00Group";
+static const std::string kParamdurand02Group = "durand02Group";
+*/
+const std::string kParamDefault              = "reset parameters with default values";
 
 const std::string kParamToneOperator_drago03    = "Drago03";
 const std::string kParamToneOperator_pattanaik00    = "Pattanaik00";

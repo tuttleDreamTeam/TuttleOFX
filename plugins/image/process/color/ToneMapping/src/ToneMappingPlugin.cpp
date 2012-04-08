@@ -2,6 +2,7 @@
 #include "ToneMappingProcess.hpp"
 #include "ToneMappingDefinitions.hpp"
 
+
 #include <boost/gil/gil_all.hpp>
 
 namespace tuttle {
@@ -12,7 +13,11 @@ ToneMappingPlugin::ToneMappingPlugin( OfxImageEffectHandle handle )
 	: ImageEffectGilPlugin( handle )
 {
 	_paramToneOperator    = fetchChoiceParam( kParamToneOperator );
-
+/*
+	_drago03Group = fetchGroupParam( kParamdrago03Group );
+	_pattanaik00Group = fetchGroupParam( kParampattanaik00Group );
+	_durand02Group = fetchGroupParam( kParamdurand02Group );
+*/
 //drago03
 	_paramBias         = fetchDoubleParam( kBias    ); 
 //pattanaik00
@@ -101,10 +106,29 @@ void ToneMappingPlugin::updateParameters()
 
 void ToneMappingPlugin::changedParam( const OFX::InstanceChangedArgs& args, const std::string& paramName )
 {
-	/*if( paramName == kParamDefault )
+	if( paramName == kParamDefault )
 	{
-
-	}*/
+		switch( _paramToneOperator->getValue( ) )
+			{
+				case 0: // drago03
+					_paramBias->setValue( 0.85 );
+					break;
+				case 1: // pattanaik00
+					_paramMult->setValue( 1.0 );
+					_paramRod->setValue( 0.5 );
+					_paramCone->setValue( 0.5 );
+					_paramProcessLocal->setValue( false );
+					_paramAutoConeRod->setValue( false );
+					break;
+				case 2: // durand02
+					_paramBaseContrast->setValue( 5.0 );
+					_paramSpatialKernelSigma->setValue( 2.0 );
+					_paramRangeKernelSigma->setValue( 2.0 );
+					break;/**/
+				default:
+					break;
+			}	
+	}/**/
 	updateParameters();
 }
 
@@ -155,6 +179,10 @@ void ToneMappingPlugin::render( const OFX::RenderArguments &args )
                         return;
                 }
                 case OFX::ePixelComponentRGB:
+		{
+                        doGilRender<ToneMappingProcess, false, boost::gil::rgb_layout_t>( *this, args, bitDepth );
+                        return;
+                }
                 case OFX::ePixelComponentAlpha:
                 case OFX::ePixelComponentCustom:
                 case OFX::ePixelComponentNone:

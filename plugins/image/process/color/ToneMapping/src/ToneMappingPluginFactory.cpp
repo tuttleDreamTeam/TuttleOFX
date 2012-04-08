@@ -70,7 +70,19 @@ void ToneMappingPluginFactory::describeInContext( OFX::ImageEffectDescriptor& de
 	toneoperator->appendOption( kParamToneOperator_pattanaik00 );
 	toneoperator->appendOption( kParamToneOperator_durand02 );
 	toneoperator->setDefault( eParamToneOperator_drago03 );
+/*
+	OFX::GroupParamDescriptor* drago03Group = desc.defineGroupParam( kParamdrago03Group );
+	drago03Group->setLabel( "Drago03" );
+	drago03Group->setOpen( true );
 
+	OFX::GroupParamDescriptor* pattanaik00Group = desc.defineGroupParam( kParampattanaik00Group );
+	pattanaik00Group->setLabel( "Pattanaik00" );
+	pattanaik00Group->setOpen(false );
+
+	OFX::GroupParamDescriptor* durand02Group = desc.defineGroupParam( kParamdurand02Group );
+	durand02Group->setLabel( "Durand02" );
+	durand02Group->setOpen( false );
+*/
 //drago03
 	OFX::DoubleParamDescriptor* Bias = desc.defineDoubleParam( kBias );
 	Bias->setLabel			( "Bias" );
@@ -78,6 +90,7 @@ void ToneMappingPluginFactory::describeInContext( OFX::ImageEffectDescriptor& de
 	Bias->setRange			( 0.0, std::numeric_limits<double>::max() );
 	Bias->setDisplayRange		( 0.0, 1.0 );
 	Bias->setHint			( "Adjust the bias. The bias has an influence on the logarithmic function." );
+//	Bias->setParent( drago03Group );
 
 //pattanaik00
 	OFX::DoubleParamDescriptor* Mult = desc.defineDoubleParam( kMult );
@@ -86,6 +99,7 @@ void ToneMappingPluginFactory::describeInContext( OFX::ImageEffectDescriptor& de
 	Mult->setRange			( 0.0, std::numeric_limits<double>::max() );
 	Mult->setDisplayRange		( 0.0, 1000.0 );
 	Mult->setHint			( "Adjust the multiplier." );
+//	Mult->setParent( pattanaik00Group );
 
 	OFX::DoubleParamDescriptor* Rod = desc.defineDoubleParam( kRod );
 	Rod->setLabel			( "Rod" );
@@ -93,6 +107,7 @@ void ToneMappingPluginFactory::describeInContext( OFX::ImageEffectDescriptor& de
 	Rod->setRange			( 0.0, std::numeric_limits<double>::max() );
 	Rod->setDisplayRange		( 0.0, 1.0 );
 	Rod->setHint			( "Adjust the rod value." );
+//	Rod->setParent( pattanaik00Group );
 
 	OFX::DoubleParamDescriptor* Cone = desc.defineDoubleParam( kCone );
 	Cone->setLabel			( "Cone" );
@@ -100,16 +115,19 @@ void ToneMappingPluginFactory::describeInContext( OFX::ImageEffectDescriptor& de
 	Cone->setRange			( 0.0, std::numeric_limits<double>::max() );
 	Cone->setDisplayRange		( 0.0, 1.0 );
 	Cone->setHint			( "Adjust the cone value." );
+//	Cone->setParent( pattanaik00Group );
 
 	OFX::BooleanParamDescriptor* local = desc.defineBooleanParam( kParamProcessLocal );
 	local->setLabel( "Process local" );
 	local->setHint( "Apply the local algorithm." );
 	local->setDefault( false );
+//	local->setParent( pattanaik00Group );
 
 	OFX::BooleanParamDescriptor* autoconerod = desc.defineBooleanParam( kParamAutoConeRod );
 	autoconerod->setLabel( "Process Auto Cone/Rod" );
 	autoconerod->setHint( "Automatic computing of the rod and cone values" );
 	autoconerod->setDefault( false );
+//	autoconerod->setParent( pattanaik00Group );
 
 //durand02
 	OFX::DoubleParamDescriptor* BaseContrast = desc.defineDoubleParam( kBaseContrast );
@@ -118,6 +136,7 @@ void ToneMappingPluginFactory::describeInContext( OFX::ImageEffectDescriptor& de
 	BaseContrast->setRange			( 0.0, std::numeric_limits<double>::max() );
 	BaseContrast->setDisplayRange		( 0.0, 10.0 );
 	BaseContrast->setHint			( "Adjust the base contrast." );
+//	BaseContrast->setParent( durand02Group );
 
 	OFX::DoubleParamDescriptor* SpatialKernelSigma = desc.defineDoubleParam( kSpatialKernelSigma );
 	SpatialKernelSigma->setLabel		( "Spatial Kernel Sigma" );
@@ -125,6 +144,7 @@ void ToneMappingPluginFactory::describeInContext( OFX::ImageEffectDescriptor& de
 	SpatialKernelSigma->setRange		( 0.0, std::numeric_limits<double>::max() );
 	SpatialKernelSigma->setDisplayRange	( 0.0, 100.0 );
 	SpatialKernelSigma->setHint		( "Adjust the Spatial Kernel Sigma." );
+//	SpatialKernelSigma->setParent( durand02Group );
 
 	OFX::DoubleParamDescriptor* RangeKernelSigma = desc.defineDoubleParam( kRangeKernelSigma );
 	RangeKernelSigma->setLabel		( "Range Kernel Sigma" );
@@ -132,7 +152,11 @@ void ToneMappingPluginFactory::describeInContext( OFX::ImageEffectDescriptor& de
 	RangeKernelSigma->setRange		( 0.0, std::numeric_limits<double>::max() );
 	RangeKernelSigma->setDisplayRange	( 0.0, 10.0 );
 	RangeKernelSigma->setHint		( "Adjust the Range Kernel Sigma." );
+//	RangeKernelSigma->setParent( durand02Group );
 
+	OFX::PushButtonParamDescriptor* bydefault = desc.definePushButtonParam( kParamDefault );
+	bydefault->setLabel( "Default" );
+	
 
 /*	OFX::ChoiceParamDescriptor* in = desc.defineChoiceParam( kParamIn );
 	in->setLabel( "In" );

@@ -54,8 +54,14 @@ private:
 
 public:
 	OFX::ChoiceParam*       _paramToneOperator;
+/*
+	OFX::GroupParam* 	_drago03Group;
+	OFX::GroupParam* 	_pattanaik00Group;
+	OFX::GroupParam* 	_durand02Group;
+*/
 //drago03
 	OFX::DoubleParam*       _paramBias;
+
 //pattanaik00
 	OFX::DoubleParam*       _paramMult;
 	OFX::DoubleParam*       _paramRod;
@@ -63,6 +69,7 @@ public:
 
 	OFX::BooleanParam*      _paramProcessLocal;
 	OFX::BooleanParam*      _paramAutoConeRod;
+
 //durand02
 	OFX::DoubleParam*       _paramBaseContrast;
 	OFX::DoubleParam*       _paramSpatialKernelSigma;
