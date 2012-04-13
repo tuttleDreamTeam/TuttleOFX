@@ -153,7 +153,7 @@ void SeamCarvingPlugin::render( const OFX::RenderArguments &args )
         {
                 // cas du RGBA, a choisir ceux que vous voulez
                 // et dis à gil d'utiliser uniquement les vues rgba32f_view_t, rgba32_view_t rgb16_view_t et rgb8_view_t
-                // et la fonction multiThreadProcessImages (dans le .tcc) sera compilé uniquement avec ces templates
+                // et la fonction multiThreadProcessImages (dans le .tcc) sera compilée uniquement avec ces templates
 
                 case OFX::ePixelComponentRGBA:
                 {

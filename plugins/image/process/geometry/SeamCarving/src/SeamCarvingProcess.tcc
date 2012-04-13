@@ -54,7 +54,7 @@ void SeamCarvingProcess<View>::multiThreadProcessImages( const OfxRectI& procWin
 	using namespace terry;
 	using namespace terry::sampler;
 
-	TUTTLE_COUT("titi est un RGB!");
+	TUTTLE_COUT("Seam Carving Processing !");
 	
 	OfxRectI procWindowOutput = this->translateRoWToOutputClipCoordinates( procWindowRoW );
 	OfxPointI procWindowSize = { procWindowRoW.x2 - procWindowRoW.x1,
@@ -64,7 +64,15 @@ void SeamCarvingProcess<View>::multiThreadProcessImages( const OfxRectI& procWin
 							 procWindowOutput.y1, procWindowSize.x, procWindowSize.y );
 	View dst = subimage_view( this->_dstView, procWindowOutput.x1,
 							 procWindowOutput.y1, procWindowSize.x, procWindowSize.y );
-		
+	
+	//gray8_image_t dirMap ( src.width(), src.height(),0 );
+	//gray8_view_t dirView < gray8_pixel_t > (dirMap);	
+	
+	
+	gray8_image_t dirMap( this->_dstView.width(), this->_dstView.height() );	//déclaration dirMap
+		typename gray8_image_t::view_t dirView( view( dirMap ) );
+	
+	gray8_view_t::xy_locator dirView_loc = dirView.xy_at(0,0);	//declaration locator
 	
 	/*for(int y(0); y < src.height()-1; y++ )
 	{
@@ -74,10 +82,12 @@ void SeamCarvingProcess<View>::multiThreadProcessImages( const OfxRectI& procWin
 	  }	 
 	}*/
 	
-	for(int x = 0; x < src.width(); x++ )
+	/*for(int x = 0; x < src.width(); x++ )
 	{
 		dst(0,x) = src(0,x);
-	}
+	}*/
+
+	/*** Process Cumulative Weight : ***/
 	for(int y = 1; y < src.height(); y++ )
 	{
                for(int x = 0; x < src.width(); x++ )
@@ -90,8 +100,8 @@ void SeamCarvingProcess<View>::multiThreadProcessImages( const OfxRectI& procWin
                        float topRight = get_color( dst(x+1,y-1), red_t() );
 
                        float minValue = top;
-                       char  dir      = 0 ;
-                       if( topLeft < minValue )
+		       int  dir  = 0 ;		//faire un tableau de char --> direction map
+		       if( topLeft < minValue )
                        {
                            minValue = topLeft;
                            dir = -1;
@@ -104,8 +114,47 @@ void SeamCarvingProcess<View>::multiThreadProcessImages( const OfxRectI& procWin
                        get_color( dst(x,y), red_t() ) = currentP + minValue;
                        get_color( dst(x,y), green_t() ) = currentP + minValue;
                        get_color( dst(x,y), blue_t() ) = currentP + minValue;
-               }
-       }
+		       get_color( dirView(x,y), gray_color_t() ) = dir;
+		       
+	}
+	}
+	
+	/* Find Seam */
+
+	float min = dirView( 0, dirView.height() );
+	int minWeight_id = 0;
+	for(int x = 1; x < dirView.width(); x++ )
+        {
+		if ( dirView( x, dirView.height() ) < min)
+		{
+			min = dirView( x, dirView.height() );
+			minWeight_id = x;
+		}
+	}
+
+	/*
+	std::vector<int> seam( dirView.height() );
+	seam.at( dirView.height()-1 ) = minWeight_id;
+	dirView_loc.x() = minWeight_id;
+	for( int y = dirView.height()-2 ; y == 0 ; y-- )
+	{
+		int x = dirView_loc.x();
+		dirView_loc.y()=y+1;
+		seam.at(y) = seam.at(y+1) + dirView_loc( get_color( dirView( x, y+1 ), gray_color_t() ), -1 );
+		dirView_loc.x()= dirView_loc.x() + dirView ( x, y+1 );
+	}
+	*/
+	
+	
+	
+	
+	
+	
+	/* trouver la valeur min de la dernière ligne de dst --> comment on appelle l'image en cours de traitement d'ailleurs ????
+	 * reprendre le vecteur de direction
+	 * tracer le vectuer seam, puis suppression OU supprimer les pixels les uns après les autres directement ???
+	 */
+	
 	
 	/*for(int y(1); y < src.height(); y++ )
 	{

@@ -11,7 +11,7 @@ namespace plugin {
 namespace seamcarving {
 
 static const std::string kParamSize = "size";
-static const std::string kOfxImageEffectMapSourceClipName = "map";
+static const std::string kOfxImageEffectMapSourceClipName = "map"; //nom de l'entrée
 
 }
 }

@@ -50,9 +50,9 @@ void SeamCarvingPluginFactory::describeInContext( OFX::ImageEffectDescriptor& de
         srcClip->addSupportedComponent( OFX::ePixelComponentAlpha );
         srcClip->setSupportsTiles( kSupportTiles );
 	
-	OFX::ClipDescriptor* srcClipG = desc.defineClip( kOfxImageEffectMapSourceClipName );
-        srcClipG->addSupportedComponent( OFX::ePixelComponentAlpha );
-        srcClipG->setSupportsTiles( kSupportTiles );
+	OFX::ClipDescriptor* srcClipGradient = desc.defineClip( kOfxImageEffectMapSourceClipName );
+        srcClipGradient->addSupportedComponent( OFX::ePixelComponentAlpha );
+        srcClipGradient->setSupportsTiles( kSupportTiles );
 	
 	// Create the mandated output clip
         OFX::ClipDescriptor* dstClip = desc.defineClip( kOfxImageEffectOutputClipName );
@@ -64,7 +64,7 @@ void SeamCarvingPluginFactory::describeInContext( OFX::ImageEffectDescriptor& de
 
         OFX::Int2DParamDescriptor* size = desc.defineInt2DParam( kParamSize );
         size->setLabel( "Size" );
-        size->setDefault( 200, 200 );
+        size->setDefault(600,407);
         size->setRange( 1, 1, std::numeric_limits<int>::max(), std::numeric_limits<int>::max() );
         size->setHint( "Set the output size (width, height)." );
 
