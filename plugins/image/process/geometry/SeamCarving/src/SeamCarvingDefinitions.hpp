@@ -10,8 +10,15 @@ namespace tuttle {
 namespace plugin {
 namespace seamcarving {
 
+static const std::string kClipMap        = "Map";
+static const std::string kClipKeepMask   = "KeepMask";
+static const std::string kClipDeleteMask = "DeleteMask";
+
 static const std::string kParamSize = "size";
-static const std::string kOfxImageEffectMapSourceClipName = "map"; //nom de l'entrée
+static const std::string kParamSizeLabel = "Size";
+
+static const std::string kParamMap = "map";
+static const std::string kParamMapLabel = "Show map";
 
 }
 }

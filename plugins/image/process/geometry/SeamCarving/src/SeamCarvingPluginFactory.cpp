@@ -20,21 +20,22 @@ static const bool kSupportTiles = false;
  */
 void SeamCarvingPluginFactory::describe( OFX::ImageEffectDescriptor& desc )
 {
-        desc.setLabels( "TuttleSeamCarving", "SeamCarving", "Image Retargeting" );
-        desc.setPluginGrouping( "tuttle/image/process/geometry" );
+	desc.setLabels( "TuttleSeamCarving", "SeamCarving", "Image Retargeting" );
+	desc.setPluginGrouping( "tuttle/image/process/geometry" );
 
-        // add the supported contexts, only filter at the moment
-        desc.addSupportedContext( OFX::eContextFilter );
-        desc.addSupportedContext( OFX::eContextGeneral );
+	// add the supported contexts, only filter at the moment
+	desc.addSupportedContext( OFX::eContextFilter );
+	desc.addSupportedContext( OFX::eContextGeneral );
 
-        // add supported pixel depths
-        desc.addSupportedBitDepth( OFX::eBitDepthUByte );
-        desc.addSupportedBitDepth( OFX::eBitDepthUShort );
-        desc.addSupportedBitDepth( OFX::eBitDepthFloat );
+	// add supported pixel depths
+	desc.addSupportedBitDepth( OFX::eBitDepthUByte );
+	desc.addSupportedBitDepth( OFX::eBitDepthUShort );
+	desc.addSupportedBitDepth( OFX::eBitDepthFloat );
 
-        // plugin flags
-        desc.setSupportsTiles( kSupportTiles );
-        desc.setRenderThreadSafety( OFX::eRenderFullySafe );
+	// plugin flags
+        desc.setSupportsMultipleClipDepths( true );
+	desc.setSupportsTiles( kSupportTiles );
+	desc.setRenderThreadSafety( OFX::eRenderFullySafe );
 }
 
 /**
@@ -45,28 +46,40 @@ void SeamCarvingPluginFactory::describe( OFX::ImageEffectDescriptor& desc )
 void SeamCarvingPluginFactory::describeInContext( OFX::ImageEffectDescriptor& desc, OFX::EContext context )
 {
         OFX::ClipDescriptor* srcClip = desc.defineClip( kOfxImageEffectSimpleSourceClipName );
-        srcClip->addSupportedComponent( OFX::ePixelComponentRGBA );
-        srcClip->addSupportedComponent( OFX::ePixelComponentRGB );
-        srcClip->addSupportedComponent( OFX::ePixelComponentAlpha );
-        srcClip->setSupportsTiles( kSupportTiles );
-	
-	OFX::ClipDescriptor* srcClipGradient = desc.defineClip( kOfxImageEffectMapSourceClipName );
-        srcClipGradient->addSupportedComponent( OFX::ePixelComponentAlpha );
-        srcClipGradient->setSupportsTiles( kSupportTiles );
-	
+	srcClip->addSupportedComponent( OFX::ePixelComponentRGBA );
+	srcClip->addSupportedComponent( OFX::ePixelComponentRGB );
+	srcClip->addSupportedComponent( OFX::ePixelComponentAlpha );
+	srcClip->setSupportsTiles( kSupportTiles );
+
 	// Create the mandated output clip
-        OFX::ClipDescriptor* dstClip = desc.defineClip( kOfxImageEffectOutputClipName );
-        dstClip->addSupportedComponent( OFX::ePixelComponentRGBA );
-        dstClip->addSupportedComponent( OFX::ePixelComponentRGB );
-        dstClip->addSupportedComponent( OFX::ePixelComponentAlpha );
-        dstClip->setSupportsTiles( kSupportTiles );
+	OFX::ClipDescriptor* dstClip = desc.defineClip( kOfxImageEffectOutputClipName );
+	dstClip->addSupportedComponent( OFX::ePixelComponentRGBA );
+	dstClip->addSupportedComponent( OFX::ePixelComponentRGB );
+	dstClip->addSupportedComponent( OFX::ePixelComponentAlpha );
+	dstClip->setSupportsTiles( kSupportTiles );
 
+	OFX::ClipDescriptor* mapClip = desc.defineClip( kClipMap );
+        mapClip->addSupportedComponent( OFX::ePixelComponentAlpha );
+	mapClip->setSupportsTiles( kSupportTiles );
 
-        OFX::Int2DParamDescriptor* size = desc.defineInt2DParam( kParamSize );
-        size->setLabel( "Size" );
-        size->setDefault(600,407);
-        size->setRange( 1, 1, std::numeric_limits<int>::max(), std::numeric_limits<int>::max() );
-        size->setHint( "Set the output size (width, height)." );
+	OFX::ClipDescriptor* keepMask = desc.defineClip( kClipKeepMask );
+	keepMask->addSupportedComponent( OFX::ePixelComponentAlpha );
+	keepMask->setSupportsTiles( kSupportTiles );
+	keepMask->setOptional( true );
+
+	OFX::ClipDescriptor* deleteMaskClip = desc.defineClip( kClipDeleteMask );
+	deleteMaskClip->addSupportedComponent( OFX::ePixelComponentAlpha );
+	deleteMaskClip->setSupportsTiles( kSupportTiles );
+	deleteMaskClip->setOptional(true);
+
+	OFX::Int2DParamDescriptor* size = desc.defineInt2DParam( kParamSize );
+	size->setLabel( kParamSizeLabel );
+	size->setDefault( 200, 200 );
+	size->setRange( 1, 1, std::numeric_limits<int>::max(), std::numeric_limits<int>::max() );
+
+	OFX::BooleanParamDescriptor* showMap = desc.defineBooleanParam( kParamMap );
+	showMap->setLabel( kParamMapLabel );
+	showMap->setDefault( true );
 
 }
 
@@ -77,9 +90,9 @@ void SeamCarvingPluginFactory::describeInContext( OFX::ImageEffectDescriptor& de
  * @return  plugin instance
  */
 OFX::ImageEffect* SeamCarvingPluginFactory::createInstance( OfxImageEffectHandle handle,
-                                                            OFX::EContext context )
+							    OFX::EContext context )
 {
-        return new SeamCarvingPlugin( handle );
+	return new SeamCarvingPlugin( handle );
 }
 
 }
