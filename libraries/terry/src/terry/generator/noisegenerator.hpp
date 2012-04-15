@@ -34,23 +34,30 @@ struct NoiseGeneratorFunctor
 
 	value_type _in_color;
 	float      _sigma;
+	float	   _nu;
+	
+	
 
 
 	NoiseGeneratorFunctor() {}
-	NoiseGeneratorFunctor( const value_type& in_color, float sigma ) //set maybe an enum for
-		: _in_color( in_color ), _sigma(sigma){}
+	NoiseGeneratorFunctor(  float sigma, float nu ) //set maybe an enum for
+		:  _sigma(sigma), _nu(nu){}
 
 	result_type operator()( const point_t& p ) const
 	{
                 boost::random::random_device gen;
 		
-
-                boost::random::normal_distribution<> dist(0, _sigma);
+		
+                boost::random::normal_distribution<> dist(_nu, _sigma);
 		//boost::random::uniform_int_distribution<> dist(0, 255);
-
+		// color gray
                 value_type color;
-                color_convert( rgba32f_pixel_t( 0.004*dist(gen), 0.004*dist(gen), 0.004*dist(gen), 1 ), color );
+		double a;
+		a = 0.004*dist(gen);
+                color_convert( rgba32f_pixel_t( a, a, a, 1 ), color);
 
+		//color rgba
+		//color_convert( rgba32f_pixel_t( a, a, a, 1 ), color);
                 return color;
 	}
 
