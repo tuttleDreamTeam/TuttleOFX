@@ -12,8 +12,10 @@ NoiseGeneratorPlugin::NoiseGeneratorPlugin( OfxImageEffectHandle handle )
 	: GeneratorPlugin( handle )
 {
 	
-	_color1  = fetchRGBAParam( kNoiseGeneratorColor1 );
+	
 	_sigma  = fetchDoubleParam( kNoiseGeneratorSigma );
+	_nu = fetchDoubleParam( kNoiseGeneratorNu );
+	
 	
 }
 

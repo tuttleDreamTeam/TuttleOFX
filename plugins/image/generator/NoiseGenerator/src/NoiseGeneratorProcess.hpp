@@ -22,8 +22,9 @@ struct NoiseGeneratorParams
 {
 	typedef typename View::value_type Pixel;
 	
-	Pixel _color1;
+
 	float _sigma;
+	float _nu;
 	
 	
 };

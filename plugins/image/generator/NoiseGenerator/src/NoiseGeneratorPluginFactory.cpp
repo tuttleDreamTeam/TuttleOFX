@@ -54,14 +54,17 @@ void NoiseGeneratorPluginFactory::describeInContext( OFX::ImageEffectDescriptor&
 {
 	describeGeneratorParamsInContext( desc, context );
 
-	OFX::RGBAParamDescriptor* color1 = desc.defineRGBAParam( kNoiseGeneratorColor1 );
-	color1->setDefault( 0, 0, 0, 1 );
-	color1->setLabel( "color1" );
+	
 
 	OFX::DoubleParamDescriptor* sigma = desc.defineDoubleParam( kNoiseGeneratorSigma );
-	sigma->setDefault( 1 );
-	sigma->setRange(0.00000001, 50); //find the max lim for a double
+	sigma->setDefault( 50 );
+	sigma->setRange(0.00000001, 300); //find the max lim for a double
 	sigma->setLabel( "sigma" );
+
+OFX::DoubleParamDescriptor* nu = desc.defineDoubleParam( kNoiseGeneratorNu );
+	nu->setDefault( 0 );
+	nu->setRange(-100, 100); //find the max lim for a double
+	nu->setLabel( "nu" );
 }
 
 /**

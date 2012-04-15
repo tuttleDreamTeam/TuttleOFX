@@ -22,8 +22,9 @@ public:
 
 public:
 
-	OFX::RGBAParam* _color1;
+
 	OFX::DoubleParam* _sigma;
+	OFX::DoubleParam* _nu;
 	
 };
 

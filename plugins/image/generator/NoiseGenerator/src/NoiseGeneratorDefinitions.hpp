@@ -9,8 +9,12 @@ namespace plugin {
 namespace noisegenerator {
 
 
-static const std::string kNoiseGeneratorColor1 = "color1";
+
 static const std::string kNoiseGeneratorSigma = "sigma";
+static const std::string kNoiseGeneratorNu = "nu";
+
+
+
 
 }
 }
