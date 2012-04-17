@@ -1,5 +1,6 @@
 #include <tuttle/plugin/ofxToGil/rect.hpp>
 #include <terry/geometry/affine.hpp>
+//#include <gray.hpp>
 
 namespace tuttle {
 namespace plugin {
@@ -36,7 +37,46 @@ void SeamCarvingProcess<MapView, View>::setup( const OFX::RenderArguments& args 
 template<class MapView>
 void processVerticalCumulSum( MapView& map, boost::gil::gray32f_view_t& viewDirMap, boost::gil::gray32f_view_t& viewCumulSum )
 {
+	using namespace terry;
+	TUTTLE_COUT("CumulSum");
+	
+	float currentP;
+	float topLeft;
+	float top;
+	float topRight;
+	float minValue;
+	int dir;
 
+	for(int y = 1; y < map.height(); y++ )
+	{
+		for(int x = 0; x < map.width(); x++ )
+		{
+			currentP = get_color( map(x,y), gray_color_t() );
+			topLeft  = get_color( viewCumulSum(x-1,y-1), gray_color_t() );
+			top      = get_color( viewCumulSum(x  ,y-1), gray_color_t() );
+			topRight = get_color( viewCumulSum(x+1,y-1), gray_color_t() );
+			minValue = top;
+			dir = 0;
+		
+			if( topLeft < minValue )
+			{
+				//TUTTLE_COUT("dir = -1");
+				minValue = topLeft;
+				dir = -1;
+			}
+			else if( topRight < minValue)
+			{
+				//TUTTLE_COUT("dir = 1");
+				minValue = topRight;
+				dir = 1;
+			}
+			get_color( viewCumulSum(x,y), gray_color_t() ) = currentP + minValue;
+			//TUTTLE_COUT(minValue);
+			get_color( viewDirMap(x,y), gray_color_t() ) = dir;
+	
+		}
+	}
+	//copy_and_convert_pixels( viewCumulSum, map );
 }
 
 void processFoundVerticalSeam( boost::gil::gray32f_view_t& viewDirMap, boost::gil::gray32f_view_t& viewCumulSum, std::vector<int>& seamPosition )
@@ -83,6 +123,8 @@ void SeamCarvingProcess<MapView, View>::multiThreadProcessImages( const OfxRectI
 	else
 	{
                 TUTTLE_COUT("show resized");
+                processVerticalCumulSum( map, viewDirMap, viewCumulSum);
+		copy_and_convert_pixels( viewCumulSum, dst );
         }
 }
 
