@@ -2,6 +2,7 @@
 #include "ToneMappingProcess.hpp"
 #include "ToneMappingDefinitions.hpp"
 
+//#include "ToneMappingPluginFactory.hpp"
 
 #include <boost/gil/gil_all.hpp>
 
@@ -13,11 +14,11 @@ ToneMappingPlugin::ToneMappingPlugin( OfxImageEffectHandle handle )
 	: ImageEffectGilPlugin( handle )
 {
 	_paramToneOperator    = fetchChoiceParam( kParamToneOperator );
-/*
+
 	_drago03Group = fetchGroupParam( kParamdrago03Group );
 	_pattanaik00Group = fetchGroupParam( kParampattanaik00Group );
 	_durand02Group = fetchGroupParam( kParamdurand02Group );
-*/
+/**/
 //drago03
 	_paramBias         = fetchDoubleParam( kBias    ); 
 //pattanaik00
@@ -32,20 +33,6 @@ ToneMappingPlugin::ToneMappingPlugin( OfxImageEffectHandle handle )
 	_paramSpatialKernelSigma   = fetchDoubleParam( kSpatialKernelSigma   );
 	_paramRangeKernelSigma   = fetchDoubleParam( kRangeKernelSigma   );
 
-
-/*	_paramIn              = fetchChoiceParam( kParamIn );
-	_paramOut             = fetchChoiceParam( kParamOut );
-
-	_paramInGamma         = fetchDoubleParam( kColorSpaceInGammaValue    );
-	_paramOutGamma        = fetchDoubleParam( kColorSpaceOutGammaValue   );
-	_paramInBlackPoint    = fetchDoubleParam( kColorSpaceInBlackPoint    );
-	_paramOutBlackPoint   = fetchDoubleParam( kColorSpaceOutBlackPoint   );
-	_paramInWhitePoint    = fetchDoubleParam( kColorSpaceInWhitePoint    );
-	_paramOutWhitePoint   = fetchDoubleParam( kColorSpaceOutWhitePoint   );
-	_paramInGammaSensito  = fetchDoubleParam( kColorSpaceInGammaSensito  );
-	_paramOutGammaSensito = fetchDoubleParam( kColorSpaceOutGammaSensito );
-
-	_paramProcessAlpha    = fetchBooleanParam( kParamProcessAlpha );*/
 	updateParameters();
 }
 
@@ -80,11 +67,16 @@ void ToneMappingPlugin::updateParameters()
 	_paramBaseContrast	->setIsSecretAndDisabled( true );
 	_paramSpatialKernelSigma->setIsSecretAndDisabled( true );
 	_paramRangeKernelSigma	->setIsSecretAndDisabled( true );
-
+//OFX Groups
+	//drago03Group->setOpen( false );
+	//pattanaik00Group->setOpen(false );
+	//durand02Group->setOpen( false );
+	
 	switch( _paramToneOperator->getValue( ) )
 	{
 		case 0: // drago03
 			_paramBias->setIsSecretAndDisabled( false );
+			//drago03Group->setOpen( true );
 			break;
 		case 1: // pattanaik00
 			_paramMult->setIsSecretAndDisabled( false );
@@ -92,12 +84,19 @@ void ToneMappingPlugin::updateParameters()
 			_paramCone->setIsSecretAndDisabled( false );
 			_paramProcessLocal->setIsSecretAndDisabled( false );
 			_paramAutoConeRod->setIsSecretAndDisabled( false );
+			//pattanaik00Group->setOpen( true );
 			break;
-		case 2: // durand02
+		case 2: break;
+		case 3: break;
+		case 4: // durand02
 			_paramBaseContrast->setIsSecretAndDisabled( false );
 			_paramSpatialKernelSigma->setIsSecretAndDisabled( false );
 			_paramRangeKernelSigma	->setIsSecretAndDisabled( false );
+			//durand02Group->setOpen( true );
 			break;
+		case 5: break;
+		case 6: break;
+		case 7: break;
 		default:
 			break;
 	}
@@ -108,6 +107,7 @@ void ToneMappingPlugin::changedParam( const OFX::InstanceChangedArgs& args, cons
 {
 	if( paramName == kParamDefault )
 	{
+		TUTTLE_COUT("pass here: default...");
 		switch( _paramToneOperator->getValue( ) )
 			{
 				case 0: // drago03
@@ -120,12 +120,17 @@ void ToneMappingPlugin::changedParam( const OFX::InstanceChangedArgs& args, cons
 					_paramProcessLocal->setValue( false );
 					_paramAutoConeRod->setValue( false );
 					break;
-				case 2: // durand02
+				case 2: break;
+				case 3: break;
+				case 4: // durand02
 					_paramBaseContrast->setValue( 5.0 );
 					_paramSpatialKernelSigma->setValue( 2.0 );
 					_paramRangeKernelSigma->setValue( 2.0 );
 					break;/**/
-				default:
+				case 5: break;
+				case 6: break;
+				case 7: break;
+				default: 
 					break;
 			}	
 	}/**/
@@ -170,19 +175,16 @@ void ToneMappingPlugin::render( const OFX::RenderArguments &args )
         OFX::EPixelComponent components = _clipDst->getPixelComponents();
         switch( components )
         {
-                // cas du RGBA, a choisir ceux que vous voulez
-                // et dis à gil d'utiliser uniquement les vues rgba32f_view_t, rgba32_view_t rgb16_view_t et rgb8_view_t
-                // et la fonction multiThreadProcessImages (dans le .tcc) sera compilé uniquement avec ces templates
-                case OFX::ePixelComponentRGBA:
-                {
-                        doGilRender<ToneMappingProcess, false, boost::gil::rgba_layout_t>( *this, args, bitDepth );
-                        return;
-                }
                 case OFX::ePixelComponentRGB:
 		{
                         doGilRender<ToneMappingProcess, false, boost::gil::rgb_layout_t>( *this, args, bitDepth );
                         return;
                 }
+		case OFX::ePixelComponentRGBA:
+                {
+                        doGilRender<ToneMappingProcess, false, boost::gil::rgba_layout_t>( *this, args, bitDepth );
+                        return;
+                }/**/
                 case OFX::ePixelComponentAlpha:
                 case OFX::ePixelComponentCustom:
                 case OFX::ePixelComponentNone:

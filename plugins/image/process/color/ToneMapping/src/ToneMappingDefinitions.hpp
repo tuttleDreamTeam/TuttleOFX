@@ -8,23 +8,33 @@ namespace plugin {
 namespace toneMapping {
 
 const std::string kParamToneOperator  = "operator";
-/*
+
 //a group of parameters for each algo ???
 static const std::string kParamdrago03Group = "drago03Group";
 static const std::string kParampattanaik00Group = "pattanaik00Group";
 static const std::string kParamdurand02Group = "durand02Group";
-*/
+/**/
 const std::string kParamDefault              = "reset parameters with default values";
 
 const std::string kParamToneOperator_drago03    = "Drago03";
 const std::string kParamToneOperator_pattanaik00    = "Pattanaik00";
+const std::string kParamToneOperator_reinhard04    = "Reinhard04";
+const std::string kParamToneOperator_reinhard02    = "Reinhard02";
 const std::string kParamToneOperator_durand02   = "Durand02";
+const std::string kParamToneOperator_ashikhmin  = "Ashikhmin";
+const std::string kParamToneOperator_fattal  = "Fattal";
+const std::string kParamToneOperator_mantiuk   = "Mantiuk";
 
 enum EParamToneOperator
 {
 	eParamToneOperator_drago03 = 0,
 	eParamToneOperator_pattanaik00,
-	eParamToneOperator_durand02
+	eParamToneOperator_reinhard04,
+	eParamToneOperator_reinhard02,
+	eParamToneOperator_durand02,
+	eParamToneOperator_ashikhmin,
+	eParamToneOperator_fattal,
+	eParamToneOperator_mantiuk,
 };
 
 //drago03
@@ -41,53 +51,7 @@ static const std::string kBaseContrast	= "BaseContrast";
 static const std::string kSpatialKernelSigma	= "SpatialKernelSigma";
 static const std::string kRangeKernelSigma	= "RangeKernelSigma";
 
-/*
-const std::string kParamIn  = "in";
-const std::string kParamOut = "out";
 
-const std::string kParamGradation_linear    = "Linear";
-const std::string kParamGradation_sRGB      = "sRGB";
-const std::string kParamGradation_cineon    = "Cineon";
-const std::string kParamGradation_gamma     = "Gamma";
-const std::string kParamGradation_panalog   = "Panalog";
-const std::string kParamGradation_REDLog    = "REDLog";
-const std::string kParamGradation_ViperLog  = "ViperLog";
-const std::string kParamGradation_REDSpace  = "REDSpace";
-const std::string kParamGradation_AlexaLogC = "AlexaLogC";
-
-//const std::string kParamGradation_rec709  = "rec709";
-//const std::string kParamGradation_rec601  = "rec601";
-*/
-
-/*
-enum EParamGradation
-{
-	eParamGradation_linear = 0,
-	eParamGradation_sRGB,
-	eParamGradation_cineon,
-	eParamGradation_gamma,
-	eParamGradation_panalog,
-	eParamGradation_REDLog,
-	eParamGradation_ViperLog,
-	eParamGradation_REDSpace,
-	eParamGradation_AlexaLogC
-	//	eParamGradation_rec709,
-	//	eParamGradation_rec601
-};
-
-static const std::string kColorSpaceInGammaValue	= "inGammaValue";
-static const std::string kColorSpaceInBlackPoint	= "inBlackPoint";
-static const std::string kColorSpaceInWhitePoint	= "inWhitePoint";
-static const std::string kColorSpaceInGammaSensito	= "inGammaSensito";
-
-static const std::string kColorSpaceOutGammaValue	= "outGammaValue";
-static const std::string kColorSpaceOutBlackPoint	= "outBlackPoint";
-static const std::string kColorSpaceOutWhitePoint	= "outWhitePoint";
-static const std::string kColorSpaceOutGammaSensito	= "outGammaSensito";
-
-const std::string kParamProcessAlpha        = "processAlpha";
-const std::string kParamInvert              = "invert";
-*/
 }
 }
 }

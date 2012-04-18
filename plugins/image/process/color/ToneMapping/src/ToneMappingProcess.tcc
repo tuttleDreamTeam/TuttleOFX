@@ -19,6 +19,7 @@
 #include <boost/static_assert.hpp>
 
 #include <tmo_drago03.h>
+#include <tmo_durand02.h>
 
 namespace tuttle {
 namespace plugin {
@@ -46,6 +47,7 @@ struct convertRgbToXYZ
         bits32f temp_red   = channel_convert<bits32f>( get_color( src, red_t()   ));
         bits32f temp_green = channel_convert<bits32f>( get_color( src, green_t() ));
         bits32f temp_blue  = channel_convert<bits32f>( get_color( src, blue_t()  ));
+	
 
         bits32f x, y, z;
         x = temp_red * 0.4124240f + temp_green * 0.3575790f + temp_blue * 0.1804640f;
@@ -117,55 +119,266 @@ void ToneMappingProcess<View>::multiThreadProcessImages( const OfxRectI& procWin
 	                          procWindowSize.x,
 	                          procWindowSize.y );
 
-//	copy_pixels( src, dst );// test: Output=Input
+	copy_pixels(src, dst);
+	TUTTLE_COUT("pass here: template View...");
+	switch(  _params._toneoperator )
+	{
+		case 0: break;
+		case 1: break;
+		case 2: break;
+		case 3: break;
+		case 4: break;
+		case 5: break;
+		case 6: break;
+		case 7: break;
+		default:break;
+	}
+}
 
+template<>
+void ToneMappingProcess<rgba32f_view_t>::multiThreadProcessImages( const OfxRectI& procWindowRoW )
+{
+	using namespace boost::gil;
+	OfxRectI procWindowOutput = this->translateRoWToOutputClipCoordinates( procWindowRoW );
+	OfxPointI procWindowSize  = {
+		procWindowRoW.x2 - procWindowRoW.x1,
+		procWindowRoW.y2 - procWindowRoW.y1
+	};
+
+	rgba32f_view_t src = subimage_view( this->_srcView, procWindowOutput.x1, procWindowOutput.y1,
+	                          procWindowSize.x,
+	                          procWindowSize.y );
+	rgba32f_view_t dst = subimage_view( this->_dstView, procWindowOutput.x1, procWindowOutput.y1,
+	                          procWindowSize.x,
+	                          procWindowSize.y );
+
+	TUTTLE_COUT("pass here: rgba32f...");
+	copy_pixels( src, dst );
+	int i;
+	
+//Creation of the work view and xyz view
         const std::size_t alignment = 2;
-
+ 
 	rgb32f_planar_image_t srcWork( procWindowSize.x, procWindowSize.y, alignment );
         rgb32f_planar_view_t  srcWorkV = view( srcWork );
+	copy_pixels( src, srcWorkV );
 
-        copy_pixels( src, srcWorkV );
-
-	rgb32f_image_t xyzImg( procWindowSize.x, procWindowSize.y, alignment );
-        rgb32f_view_t  xyzView = view( xyzImg );
-
-	boost::gil::transform_pixels ( srcWorkV, xyzView, convertRgbToXYZ<rgb32f_pixel_t, rgb32f_pixel_t>() );
+	rgb32f_planar_image_t xyzImg( procWindowSize.x, procWindowSize.y, alignment );
+        rgb32f_planar_view_t  xyzView = view( xyzImg );
 	
-	boost::gil::transform_pixels ( xyzView, srcWorkV, convertXYZToRgb<rgb32f_pixel_t, rgb32f_pixel_t>() );
-     
-	//copy_pixels( srcWorkV, dst );
-/*   	
-        float* redPtr   = reinterpret_cast<float*>( planar_view_get_raw_data ( srcWorkV, 0 ) );
-        float* greenPtr = reinterpret_cast<float*>( planar_view_get_raw_data ( srcWorkV, 1 ) );
-        float* bluePtr  = reinterpret_cast<float*>( planar_view_get_raw_data ( srcWorkV, 2 ) );
+//Creation of the work view and RGB pointer, and size variables	
+	unsigned int w  = srcWorkV.width();
+	unsigned int h = srcWorkV.height();
+	float* R  = reinterpret_cast<float*>( planar_view_get_raw_data ( srcWorkV, 0 ) );
+     	float* G  = reinterpret_cast<float*>( planar_view_get_raw_data ( srcWorkV, 1 ) );
+        float* B  = reinterpret_cast<float*>( planar_view_get_raw_data ( srcWorkV, 2 ) );
+	int downsample = 1;//durand02
 	
-	float* XPtr  = reinterpret_cast<float*>( planar_view_get_raw_data ( xyzView, 0 ) );
-        float* YPtr  = reinterpret_cast<float*>( planar_view_get_raw_data ( xyzView, 1 ) ); // @param Y [in] image luminance values
-        float* ZPtr  = reinterpret_cast<float*>( planar_view_get_raw_data ( xyzView, 2 ) );
+//Convert from RGB to XYZ
+	boost::gil::transform_pixels ( srcWorkV, xyzView, convertRgbToXYZ<rgb32f_pixel_t, rgb32f_pixel_t>() );	
 
-	float* LPtr; // @param L [out] tone mapped values
+ /**/   float* YPtr  = reinterpret_cast<float*>( planar_view_get_raw_data ( xyzView, 1 ) ); // @param Y [in] image luminance values
+	float* LPtr = YPtr; // @param L [out] tone mapped values
 
-	float avLum, maxLum;
-	calculateLuminance( src.width(), src.heigth(), YPtr, avLum, maxLum );
+		switch(  _params._toneoperator )
+	{
+		case 0://drago03
+		//Drago03 operations
+			float avLum, maxLum;
+			calculateLuminance( src.width(), src.height(), YPtr, avLum, maxLum );
 
-	tmo_drago03(src.width(), src.heigth(), YPtr, LPtr, maxLum, avLum, 0.85 );
+			tmo_drago03(src.width(), src.height(), YPtr, LPtr, maxLum, avLum, _params._Bias );
 
-	for( int x=0 ; x<src.width() ; x++ )
-	      for( int y=0 ; y<src.heigth() ; y++ )
-	      {
-		float scale = (*LPtr)(x,y) / (*YPtr)(x,y);
-		(*XPtr)(x,y) *= scale;
-		(*YPtr)(x,y) *= scale;
-		(*ZPtr)(x,y) *= scale;
+			i = 0;
+			for( int x=0 ; x<src.width()-1 ; x++ )
+			{
+			      for( int y=0 ; y<src.height()-1 ; y++ )
+			      { 
+				//bits32f
+				get_color( dst(x,y), red_t() )	 *= LPtr[i] ;
+				get_color( dst(x,y), green_t() ) *= LPtr[i]  ;
+				get_color( dst(x,y), blue_t() )	 *= LPtr[i]  ;
+				++i;
+			      }
+			}		  
+		  break;
+		case 1: break;
+		case 2: break;
+		case 3: break;
+		case 4:
+		//Durand02 operations
+		tmo_durand02(w, h, R, G, B, _params._SpatialKernelSigma, _params._RangeKernelSigma, _params._BaseContrast, downsample);
+		i = 0;
+		for( int x=0 ; x<srcWorkV.width() ; x++ )
+		{
+		      for( int y=0 ; y<srcWorkV.height() ; y++ )
+		      { 
+			//bits32f
+			get_color( dst(x,y), red_t() )	 = R[i] ;
+			get_color( dst(x,y), green_t() ) = G[i]  ;
+			get_color( dst(x,y), blue_t() )	 = B[i]  ;
+			++i;
+		      }
+		}  
+		  break;
+		case 5: break;
+		case 6: break;
+		case 7: break;
+		default:break;
+	}/**/
+}
 
-	      }
 
-*/
+template<>
+void ToneMappingProcess<rgb32f_view_t>::multiThreadProcessImages( const OfxRectI& procWindowRoW )
+{
+	using namespace boost::gil;
+	OfxRectI procWindowOutput = this->translateRoWToOutputClipCoordinates( procWindowRoW );
+	OfxPointI procWindowSize  = {
+		procWindowRoW.x2 - procWindowRoW.x1,
+		procWindowRoW.y2 - procWindowRoW.y1
+	};
 
+	rgb32f_view_t src = subimage_view( this->_srcView, procWindowOutput.x1, procWindowOutput.y1,
+	                          procWindowSize.x,
+	                          procWindowSize.y );
+	rgb32f_view_t dst = subimage_view( this->_dstView, procWindowOutput.x1, procWindowOutput.y1,
+	                          procWindowSize.x,
+	                          procWindowSize.y );
+
+	copy_pixels( src, dst );
+	TUTTLE_COUT("pass here: rgb32f...");
 }
 
 
 
+template<>
+void ToneMappingProcess<boost::gil::gray32f_view_t>::multiThreadProcessImages( const OfxRectI& procWindowRoW )
+{
+	using namespace boost::gil;
+	OfxRectI procWindowOutput = this->translateRoWToOutputClipCoordinates( procWindowRoW );
+	OfxPointI procWindowSize  = {
+		procWindowRoW.x2 - procWindowRoW.x1,
+		procWindowRoW.y2 - procWindowRoW.y1
+	};
+
+	gray32f_view_t src = subimage_view( this->_srcView, procWindowOutput.x1, procWindowOutput.y1,
+	                          procWindowSize.x,
+	                          procWindowSize.y );
+	gray32f_view_t dst = subimage_view( this->_dstView, procWindowOutput.x1, procWindowOutput.y1,
+	                          procWindowSize.x,
+	                          procWindowSize.y );
+	copy_pixels( src, dst );
+	TUTTLE_COUT("pass here: gray...");
+		switch(  _params._toneoperator )
+	{
+		case 0: break;
+		case 1: break;
+		case 2: break;
+		case 3: break;
+		case 4: break;
+		case 5: break;
+		case 6: break;
+		case 7: break;
+		default:break;
+	}
+}
+
+template<>
+void ToneMappingProcess<boost::gil::gray32_view_t>::multiThreadProcessImages( const OfxRectI& procWindowRoW )
+{
+	using namespace boost::gil;
+	OfxRectI procWindowOutput = this->translateRoWToOutputClipCoordinates( procWindowRoW );
+	OfxPointI procWindowSize  = {
+		procWindowRoW.x2 - procWindowRoW.x1,
+		procWindowRoW.y2 - procWindowRoW.y1
+	};
+
+	gray32_view_t src = subimage_view( this->_srcView, procWindowOutput.x1, procWindowOutput.y1,
+	                          procWindowSize.x,
+	                          procWindowSize.y );
+	gray32_view_t dst = subimage_view( this->_dstView, procWindowOutput.x1, procWindowOutput.y1,
+	                          procWindowSize.x,
+	                          procWindowSize.y );
+	copy_pixels( src, dst );
+	TUTTLE_COUT("pass here: gray...");
+		switch(  _params._toneoperator )
+	{
+		case 0: break;
+		case 1: break;
+		case 2: break;
+		case 3: break;
+		case 4: break;
+		case 5: break;
+		case 6: break;
+		case 7: break;
+		default:break;
+	}
+}
+
+template<>
+void ToneMappingProcess<boost::gil::gray16_view_t>::multiThreadProcessImages( const OfxRectI& procWindowRoW )
+{
+	using namespace boost::gil;
+	OfxRectI procWindowOutput = this->translateRoWToOutputClipCoordinates( procWindowRoW );
+	OfxPointI procWindowSize  = {
+		procWindowRoW.x2 - procWindowRoW.x1,
+		procWindowRoW.y2 - procWindowRoW.y1
+	};
+
+	gray16_view_t src = subimage_view( this->_srcView, procWindowOutput.x1, procWindowOutput.y1,
+	                          procWindowSize.x,
+	                          procWindowSize.y );
+	gray16_view_t dst = subimage_view( this->_dstView, procWindowOutput.x1, procWindowOutput.y1,
+	                          procWindowSize.x,
+	                          procWindowSize.y );
+	copy_pixels( src, dst );
+	TUTTLE_COUT("pass here: gray...");
+		switch(  _params._toneoperator )
+	{
+		case 0: break;
+		case 1: break;
+		case 2: break;
+		case 3: break;
+		case 4: break;
+		case 5: break;
+		case 6: break;
+		case 7: break;
+		default:break;
+	}
+}
+
+template<>
+void ToneMappingProcess<boost::gil::gray8_view_t>::multiThreadProcessImages( const OfxRectI& procWindowRoW )
+{
+	using namespace boost::gil;
+	OfxRectI procWindowOutput = this->translateRoWToOutputClipCoordinates( procWindowRoW );
+	OfxPointI procWindowSize  = {
+		procWindowRoW.x2 - procWindowRoW.x1,
+		procWindowRoW.y2 - procWindowRoW.y1
+	};
+
+	gray8_view_t src = subimage_view( this->_srcView, procWindowOutput.x1, procWindowOutput.y1,
+	                          procWindowSize.x,
+	                          procWindowSize.y );
+	gray8_view_t dst = subimage_view( this->_dstView, procWindowOutput.x1, procWindowOutput.y1,
+	                          procWindowSize.x,
+	                          procWindowSize.y );
+	copy_pixels( src, dst );
+	TUTTLE_COUT("pass here: gray...");
+		switch(  _params._toneoperator )
+	{
+		case 0: break;
+		case 1: break;
+		case 2: break;
+		case 3: break;
+		case 4: break;
+		case 5: break;
+		case 6: break;
+		case 7: break;
+		default:break;
+	}
+}
 
 void test( const OfxRectI& procWindowRoW )
 {

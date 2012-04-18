@@ -51,8 +51,8 @@ void ToneMappingPluginFactory::describeInContext( OFX::ImageEffectDescriptor& de
 {
 	OFX::ClipDescriptor* srcClip = desc.defineClip( kOfxImageEffectSimpleSourceClipName );
 
-	srcClip->addSupportedComponent( OFX::ePixelComponentRGBA );
 	srcClip->addSupportedComponent( OFX::ePixelComponentRGB );
+	srcClip->addSupportedComponent( OFX::ePixelComponentRGBA );
 	srcClip->addSupportedComponent( OFX::ePixelComponentAlpha );
 	srcClip->setSupportsTiles( kSupportTiles );
 
@@ -68,9 +68,14 @@ void ToneMappingPluginFactory::describeInContext( OFX::ImageEffectDescriptor& de
 	toneoperator->setHint( "Tone Mapping Algorithm" );
 	toneoperator->appendOption( kParamToneOperator_drago03 );
 	toneoperator->appendOption( kParamToneOperator_pattanaik00 );
+	toneoperator->appendOption( kParamToneOperator_reinhard04 );
+	toneoperator->appendOption( kParamToneOperator_reinhard02 );
 	toneoperator->appendOption( kParamToneOperator_durand02 );
+	//toneoperator->appendOption( kParamToneOperator_ashikhmin );
+	//toneoperator->appendOption( kParamToneOperator_fattal );
+	//toneoperator->appendOption( kParamToneOperator_mantiuk );
 	toneoperator->setDefault( eParamToneOperator_drago03 );
-/*
+
 	OFX::GroupParamDescriptor* drago03Group = desc.defineGroupParam( kParamdrago03Group );
 	drago03Group->setLabel( "Drago03" );
 	drago03Group->setOpen( true );
@@ -82,181 +87,80 @@ void ToneMappingPluginFactory::describeInContext( OFX::ImageEffectDescriptor& de
 	OFX::GroupParamDescriptor* durand02Group = desc.defineGroupParam( kParamdurand02Group );
 	durand02Group->setLabel( "Durand02" );
 	durand02Group->setOpen( false );
-*/
+/**/
 //drago03
-	OFX::DoubleParamDescriptor* Bias = desc.defineDoubleParam( kBias );
-	Bias->setLabel			( "Bias" );
-	Bias->setDefault		( 0.85 );
-	Bias->setRange			( 0.0, std::numeric_limits<double>::max() );
-	Bias->setDisplayRange		( 0.0, 1.0 );
-	Bias->setHint			( "Adjust the bias. The bias has an influence on the logarithmic function." );
-//	Bias->setParent( drago03Group );
+	OFX::DoubleParamDescriptor* bias = desc.defineDoubleParam( kBias );
+	bias->setLabel			( "Bias" );
+	bias->setDefault		( 0.85 );
+	bias->setRange			( 0.0, std::numeric_limits<double>::max() );
+	bias->setDisplayRange		( 0.0, 1.0 );
+	bias->setHint			( "Adjust the bias. The bias has an influence on the logarithmic function." );
+	bias->setParent( drago03Group );
 
 //pattanaik00
-	OFX::DoubleParamDescriptor* Mult = desc.defineDoubleParam( kMult );
-	Mult->setLabel			( "Multiplier" );
-	Mult->setDefault		( 1.0 );
-	Mult->setRange			( 0.0, std::numeric_limits<double>::max() );
-	Mult->setDisplayRange		( 0.0, 1000.0 );
-	Mult->setHint			( "Adjust the multiplier." );
-//	Mult->setParent( pattanaik00Group );
+	OFX::DoubleParamDescriptor* mult = desc.defineDoubleParam( kMult );
+	mult->setLabel			( "Multiplier" );
+	mult->setDefault		( 1.0 );
+	mult->setRange			( 0.0, std::numeric_limits<double>::max() );
+	mult->setDisplayRange		( 0.0, 1000.0 );
+	mult->setHint			( "Adjust the multiplier." );
+	mult->setParent( pattanaik00Group );
 
-	OFX::DoubleParamDescriptor* Rod = desc.defineDoubleParam( kRod );
-	Rod->setLabel			( "Rod" );
-	Rod->setDefault			( 0.5 );
-	Rod->setRange			( 0.0, std::numeric_limits<double>::max() );
-	Rod->setDisplayRange		( 0.0, 1.0 );
-	Rod->setHint			( "Adjust the rod value." );
-//	Rod->setParent( pattanaik00Group );
+	OFX::DoubleParamDescriptor* rod = desc.defineDoubleParam( kRod );
+	rod->setLabel			( "Rod" );
+	rod->setDefault			( 0.5 );
+	rod->setRange			( 0.0, std::numeric_limits<double>::max() );
+	rod->setDisplayRange		( 0.0, 1.0 );
+	rod->setHint			( "Adjust the rod value." );
+	rod->setParent( pattanaik00Group );
 
-	OFX::DoubleParamDescriptor* Cone = desc.defineDoubleParam( kCone );
-	Cone->setLabel			( "Cone" );
-	Cone->setDefault		( 0.5 );
-	Cone->setRange			( 0.0, std::numeric_limits<double>::max() );
-	Cone->setDisplayRange		( 0.0, 1.0 );
-	Cone->setHint			( "Adjust the cone value." );
-//	Cone->setParent( pattanaik00Group );
+	OFX::DoubleParamDescriptor* cone = desc.defineDoubleParam( kCone );
+	cone->setLabel			( "Cone" );
+	cone->setDefault		( 0.5 );
+	cone->setRange			( 0.0, std::numeric_limits<double>::max() );
+	cone->setDisplayRange		( 0.0, 1.0 );
+	cone->setHint			( "Adjust the cone value." );
+	cone->setParent( pattanaik00Group );
 
 	OFX::BooleanParamDescriptor* local = desc.defineBooleanParam( kParamProcessLocal );
 	local->setLabel( "Process local" );
 	local->setHint( "Apply the local algorithm." );
 	local->setDefault( false );
-//	local->setParent( pattanaik00Group );
+	local->setParent( pattanaik00Group );
 
 	OFX::BooleanParamDescriptor* autoconerod = desc.defineBooleanParam( kParamAutoConeRod );
 	autoconerod->setLabel( "Process Auto Cone/Rod" );
 	autoconerod->setHint( "Automatic computing of the rod and cone values" );
 	autoconerod->setDefault( false );
-//	autoconerod->setParent( pattanaik00Group );
+	autoconerod->setParent( pattanaik00Group );
 
 //durand02
-	OFX::DoubleParamDescriptor* BaseContrast = desc.defineDoubleParam( kBaseContrast );
-	BaseContrast->setLabel			( "Base Contrast" );
-	BaseContrast->setDefault		( 5.0 );
-	BaseContrast->setRange			( 0.0, std::numeric_limits<double>::max() );
-	BaseContrast->setDisplayRange		( 0.0, 10.0 );
-	BaseContrast->setHint			( "Adjust the base contrast." );
-//	BaseContrast->setParent( durand02Group );
+	OFX::DoubleParamDescriptor* baseContrast = desc.defineDoubleParam( kBaseContrast );
+	baseContrast->setLabel			( "Base Contrast" );
+	baseContrast->setDefault		( 5.0 );
+	baseContrast->setRange			( 0.0, std::numeric_limits<double>::max() );
+	baseContrast->setDisplayRange		( 0.0, 10.0 );
+	baseContrast->setHint			( "Adjust the base contrast." );
+	baseContrast->setParent( durand02Group );
 
-	OFX::DoubleParamDescriptor* SpatialKernelSigma = desc.defineDoubleParam( kSpatialKernelSigma );
-	SpatialKernelSigma->setLabel		( "Spatial Kernel Sigma" );
-	SpatialKernelSigma->setDefault		( 2.0 );
-	SpatialKernelSigma->setRange		( 0.0, std::numeric_limits<double>::max() );
-	SpatialKernelSigma->setDisplayRange	( 0.0, 100.0 );
-	SpatialKernelSigma->setHint		( "Adjust the Spatial Kernel Sigma." );
-//	SpatialKernelSigma->setParent( durand02Group );
+	OFX::DoubleParamDescriptor* spatialKernelSigma = desc.defineDoubleParam( kSpatialKernelSigma );
+	spatialKernelSigma->setLabel		( "Spatial Kernel Sigma" );
+	spatialKernelSigma->setDefault		( 2.0 );
+	spatialKernelSigma->setRange		( 0.0, std::numeric_limits<double>::max() );
+	spatialKernelSigma->setDisplayRange	( 0.0, 100.0 );
+	spatialKernelSigma->setHint		( "Adjust the Spatial Kernel Sigma." );
+	spatialKernelSigma->setParent( durand02Group );
 
-	OFX::DoubleParamDescriptor* RangeKernelSigma = desc.defineDoubleParam( kRangeKernelSigma );
-	RangeKernelSigma->setLabel		( "Range Kernel Sigma" );
-	RangeKernelSigma->setDefault		( 2.0 );
-	RangeKernelSigma->setRange		( 0.0, std::numeric_limits<double>::max() );
-	RangeKernelSigma->setDisplayRange	( 0.0, 10.0 );
-	RangeKernelSigma->setHint		( "Adjust the Range Kernel Sigma." );
-//	RangeKernelSigma->setParent( durand02Group );
+	OFX::DoubleParamDescriptor* rangeKernelSigma = desc.defineDoubleParam( kRangeKernelSigma );
+	rangeKernelSigma->setLabel		( "Range Kernel Sigma" );
+	rangeKernelSigma->setDefault		( 2.0 );
+	rangeKernelSigma->setRange		( 0.0, std::numeric_limits<double>::max() );
+	rangeKernelSigma->setDisplayRange	( 0.0, 10.0 );
+	rangeKernelSigma->setHint		( "Adjust the Range Kernel Sigma." );
+	rangeKernelSigma->setParent( durand02Group );
 
 	OFX::PushButtonParamDescriptor* bydefault = desc.definePushButtonParam( kParamDefault );
 	bydefault->setLabel( "Default" );
-	
-
-/*	OFX::ChoiceParamDescriptor* in = desc.defineChoiceParam( kParamIn );
-	in->setLabel( "In" );
-	in->setHint( "Input color gradation." );
-	in->appendOption( kParamGradation_linear );
-	in->appendOption( kParamGradation_sRGB );
-	in->appendOption( kParamGradation_cineon );
-	in->appendOption( kParamGradation_gamma );
-	in->appendOption( kParamGradation_panalog );
-	in->appendOption( kParamGradation_REDLog );
-	in->appendOption( kParamGradation_ViperLog );
-	in->appendOption( kParamGradation_REDSpace );
-	in->appendOption( kParamGradation_AlexaLogC );
-
-	//	in->appendOption( kParamGradation_rec709 );
-	//	in->appendOption( kParamGradation_rec601 );
-	in->setDefault( eParamGradation_linear );
-
-	OFX::DoubleParamDescriptor* inGammaValue = desc.defineDoubleParam( kColorSpaceInGammaValue );
-	inGammaValue->setLabel			( "Gamma" );
-	inGammaValue->setDefault		( 1.0 );
-	inGammaValue->setRange			( 0.0, std::numeric_limits<double>::max() );
-	inGammaValue->setDisplayRange		( 0.0, 5.0 );
-	inGammaValue->setHint			( "Adjust the Gamma." );
-
-	OFX::DoubleParamDescriptor* inBlackPoint = desc.defineDoubleParam( kColorSpaceInBlackPoint );
-	inBlackPoint->setLabel			( "Black Point" );
-	inBlackPoint->setDefault		( 0.0 );
-	inBlackPoint->setRange			( 0.0, 1.0 );
-	inBlackPoint->setDisplayRange		( 0.0, 1.0 );
-	inBlackPoint->setHint			( "Adjust the Black Point." );
-
-	OFX::DoubleParamDescriptor* inWhitePoint = desc.defineDoubleParam( kColorSpaceInWhitePoint );
-	inWhitePoint->setLabel			( "White Point" );
-	inWhitePoint->setDefault		( 1.0 );
-	inWhitePoint->setRange			( 0.0, 1.0 );
-	inWhitePoint->setDisplayRange		( 0.0, 1.0 );
-	inWhitePoint->setHint			( "Adjust the White Point." );
-
-	OFX::DoubleParamDescriptor* inGammaSensito = desc.defineDoubleParam( kColorSpaceInGammaSensito );
-	inGammaSensito->setLabel		( "Gamma Sensito" );
-	inGammaSensito->setDefault		( 1.0 );
-	inGammaSensito->setRange		( 0.0, std::numeric_limits<double>::max() );
-	inGammaSensito->setDisplayRange		( 0.0, 5.0 );
-	inGammaSensito->setHint			( "Adjust the Gamma Sensito." );
-
-
-	OFX::ChoiceParamDescriptor* out = desc.defineChoiceParam( kParamOut );
-	out->setLabel( "Out" );
-	out->setHint( "Output color gradation." );
-	out->appendOption( kParamGradation_linear );
-	out->appendOption( kParamGradation_sRGB );
-	out->appendOption( kParamGradation_cineon );
-	out->appendOption( kParamGradation_gamma );
-	out->appendOption( kParamGradation_panalog );
-	out->appendOption( kParamGradation_REDLog );
-	out->appendOption( kParamGradation_ViperLog );
-	out->appendOption( kParamGradation_REDSpace );
-	out->appendOption( kParamGradation_AlexaLogC );
-
-	//	out->appendOption( kParamGradation_rec709 );
-	//	out->appendOption( kParamGradation_rec601 );
-	out->setDefault( eParamGradation_linear );
-
-	OFX::DoubleParamDescriptor* outGammaValue = desc.defineDoubleParam( kColorSpaceOutGammaValue );
-	outGammaValue->setLabel			( "Gamma" );
-	outGammaValue->setDefault		( 1.0 );
-	outGammaValue->setRange			( 0.0, std::numeric_limits<double>::max() );
-	outGammaValue->setDisplayRange		( 0.0, 5.0 );
-	outGammaValue->setHint			( "Adjust the Gamma." );
-
-	OFX::DoubleParamDescriptor* outBlackPoint = desc.defineDoubleParam( kColorSpaceOutBlackPoint );
-	outBlackPoint->setLabel			( "Black Point" );
-	outBlackPoint->setDefault		( 0.0 );
-	outBlackPoint->setRange			( 0.0, 1.0 );
-	outBlackPoint->setDisplayRange		( 0.0, 1.0 );
-	outBlackPoint->setHint			( "Adjust the Black Point." );
-
-	OFX::DoubleParamDescriptor* outWhitePoint = desc.defineDoubleParam( kColorSpaceOutWhitePoint );
-	outWhitePoint->setLabel			( "White Point" );
-	outWhitePoint->setDefault		( 1.0 );
-	outWhitePoint->setRange			( 0.0, 1.0 );
-	outWhitePoint->setDisplayRange		( 0.0, 1.0 );
-	outWhitePoint->setHint			( "Adjust the White Point." );
-
-	OFX::DoubleParamDescriptor* outGammaSensito = desc.defineDoubleParam( kColorSpaceOutGammaSensito );
-	outGammaSensito->setLabel		( "Gamma Sensito" );
-	outGammaSensito->setDefault		( 1.0 );
-	outGammaSensito->setRange		( 0.0, std::numeric_limits<double>::max() );
-	outGammaSensito->setDisplayRange	( 0.0, 5.0 );
-	outGammaSensito->setHint		( "Adjust the Gamma Sensito." );
-
-
-	OFX::BooleanParamDescriptor* alpha = desc.defineBooleanParam( kParamProcessAlpha );
-	alpha->setLabel( "Process alpha" );
-	alpha->setHint( "Apply the conversion on alpha channel." );
-	alpha->setDefault( false );
-
-	OFX::PushButtonParamDescriptor* invert = desc.definePushButtonParam( kParamInvert );
-	invert->setLabel( "Invert" );*/
 }
 
 /**

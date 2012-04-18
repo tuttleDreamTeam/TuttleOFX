@@ -54,11 +54,11 @@ private:
 
 public:
 	OFX::ChoiceParam*       _paramToneOperator;
-/*
+
 	OFX::GroupParam* 	_drago03Group;
 	OFX::GroupParam* 	_pattanaik00Group;
 	OFX::GroupParam* 	_durand02Group;
-*/
+/**/
 //drago03
 	OFX::DoubleParam*       _paramBias;
 
