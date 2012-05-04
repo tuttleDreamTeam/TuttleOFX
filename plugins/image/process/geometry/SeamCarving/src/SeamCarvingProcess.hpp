@@ -19,9 +19,9 @@ public:
 	typedef typename boost::gil::channel_type<View>::type Channel;
 	typedef float Scalar;
 
-        View _srcView; ///< Source view
+        /*View _srcView; ///< Source view
         OFX::Image* _srcImg;
-        OfxRectI _srcPixelRod;
+        OfxRectI _srcPixelRod;*/
 
         MapView _mapView; ///< Map view
         OFX::Image* _mapImg;
