@@ -74,13 +74,19 @@ void SeamCarvingPluginFactory::describeInContext( OFX::ImageEffectDescriptor& de
 
 	OFX::Int2DParamDescriptor* size = desc.defineInt2DParam( kParamSize );
 	size->setLabel( kParamSizeLabel );
-	size->setDefault( 200, 200 );
+	size->setDefault( 500, 500 );
 	size->setRange( 1, 1, std::numeric_limits<int>::max(), std::numeric_limits<int>::max() );
 
 	OFX::BooleanParamDescriptor* showMap = desc.defineBooleanParam( kParamMap );
 	showMap->setLabel( kParamMapLabel );
 	showMap->setDefault( true );
 
+	//switch d'affichage de la source :
+	OFX::BooleanParamDescriptor* showSource = desc.defineBooleanParam( kParamSource );
+	showSource->setLabel( kParamSourceLabel );
+	showSource->setDefault( true );
+	
+	
 }
 
 /**

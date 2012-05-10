@@ -20,6 +20,9 @@ static const std::string kParamSizeLabel = "Size";
 static const std::string kParamMap = "map";
 static const std::string kParamMapLabel = "Show map";
 
+static const std::string kParamSource = "src";
+static const std::string kParamSourceLabel = "Show src";
+
 }
 }
 }
