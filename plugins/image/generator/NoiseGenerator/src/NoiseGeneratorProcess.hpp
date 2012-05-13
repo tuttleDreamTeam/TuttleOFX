@@ -25,7 +25,15 @@ struct NoiseGeneratorParams
 
 	float _sigma;
 	float _nu;
-	
+	float _color;
+	float _r_weight;
+	float _g_weight;
+	float _b_weight;
+	float _bw_weight;
+	float _nb;
+
+
+typedef float Scalar;
 	
 };
 

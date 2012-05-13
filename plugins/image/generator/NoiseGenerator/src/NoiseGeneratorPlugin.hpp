@@ -14,6 +14,8 @@ namespace noisegenerator {
 class NoiseGeneratorPlugin : public GeneratorPlugin
 {
 public:
+	typedef float Scalar;
+public:
 	NoiseGeneratorPlugin( OfxImageEffectHandle handle );
 
 public:
@@ -25,7 +27,13 @@ public:
 
 	OFX::DoubleParam* _sigma;
 	OFX::DoubleParam* _nu;
-	
+	OFX::ChoiceParam* _color;
+
+	OFX::DoubleParam* _r_weight;
+	OFX::DoubleParam* _g_weight;
+	OFX::DoubleParam* _b_weight;
+	OFX::DoubleParam* _bw_weight;
+	OFX::DoubleParam* _nb;
 };
 
 }

@@ -16,13 +16,25 @@ NoiseGeneratorPlugin::NoiseGeneratorPlugin( OfxImageEffectHandle handle )
 	_sigma  = fetchDoubleParam( kNoiseGeneratorSigma );
 	_nu = fetchDoubleParam( kNoiseGeneratorNu );
 	
-	
+	_color     = fetchChoiceParam( kNoiseGeneratorColor );
+
+	_r_weight  = fetchDoubleParam( kNoiseGeneratorRweight );
+	_g_weight  = fetchDoubleParam( kNoiseGeneratorGweight );
+	_b_weight  = fetchDoubleParam( kNoiseGeneratorBweight );
+	_bw_weight  = fetchDoubleParam( kNoiseGeneratorBW );
+
+	_nb  = fetchDoubleParam( kNoiseGeneratorNB );
+
+
 }
 
 /**
  * @brief The overridden render function
  * @param[in]   args     Rendering parameters
  */
+
+
+
 void NoiseGeneratorPlugin::render( const OFX::RenderArguments& args )
 {
 	doGilRender<NoiseGeneratorProcess>( *this, args );

@@ -24,6 +24,12 @@ NoiseGeneratorParams<View> NoiseGeneratorProcess<View>::getParams()
 	//OfxRGBAColourD c1 = _plugin._color1->getValue();
 	params._sigma = _plugin._sigma->getValue();
 	params._nu = _plugin._nu->getValue();
+	params._color = 1;
+	params._r_weight = _plugin._r_weight->getValue();
+	params._g_weight = _plugin._g_weight->getValue();
+	params._b_weight = _plugin._b_weight->getValue();
+	params._bw_weight = _plugin._bw_weight->getValue();
+	params._nb = _plugin._nb->getValue();
 	//color_convert( rgba32f_pixel_t );
 
 	
@@ -47,8 +53,10 @@ void NoiseGeneratorProcess<View>::setup( const OFX::RenderArguments& args )
 	Point dims( rod.x2 - rod.x1, rod.y2 - rod.y1 );
 	int yshift = boost::numeric_cast<int>( ( dims.x - dims.y ) * 0.5 );
 
-	// create a squared noisegenerator
-	NoiseGeneratorVirtualView noise( Point( dims.x, dims.x ), Locator( Point( 0, 0 ), Point( 1, 1 ), NoiseGeneratorFunctorT( params._sigma, params._nu) ) );
+	// create a noise
+	NoiseGeneratorVirtualView noise( Point( dims.x, dims.x ), Locator( Point( 0, 0 ), Point( 1, 1 ), NoiseGeneratorFunctorT( params._sigma, params._nu, params._color, params._r_weight, params._g_weight, params._b_weight, params._bw_weight, params._nb) ) );
+
+
 	// create a subview depending on the image ratio
 	_srcView = subimage_view<>( noise, 0, yshift, boost::numeric_cast<int>( dims.x ), boost::numeric_cast<int>( dims.y ) );
 }
