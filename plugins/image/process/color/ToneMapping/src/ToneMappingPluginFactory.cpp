@@ -8,7 +8,7 @@ namespace tuttle {
 namespace plugin {
 namespace toneMapping {
 
-static const bool kSupportTiles = true;
+static const bool kSupportTiles = false;
 
 /**
  * @brief Function called to describe the plugin main features.

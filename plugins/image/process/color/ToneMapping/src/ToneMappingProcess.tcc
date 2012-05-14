@@ -154,72 +154,71 @@ void ToneMappingProcess<rgba32f_view_t>::multiThreadProcessImages( const OfxRect
 
 	TUTTLE_COUT("pass here: rgba32f...");
 	copy_pixels( src, dst );
-	int i;
 	
 //Creation of the work view and xyz view
         const std::size_t alignment = 2;
  
 	rgb32f_planar_image_t srcWork( procWindowSize.x, procWindowSize.y, alignment );
         rgb32f_planar_view_t  srcWorkV = view( srcWork );
-	copy_pixels( src, srcWorkV );
+	copy_and_convert_pixels( src, srcWorkV );
 
 	rgb32f_planar_image_t xyzImg( procWindowSize.x, procWindowSize.y, alignment );
         rgb32f_planar_view_t  xyzView = view( xyzImg );
 	
-//Creation of the work view and RGB pointer, and size variables	
-	unsigned int w  = srcWorkV.width();
-	unsigned int h = srcWorkV.height();
+//Creation of the work view' R,G and B pointers, and size variables	
+	unsigned int w = src.width();
+	unsigned int h = src.height();
 	float* R  = reinterpret_cast<float*>( planar_view_get_raw_data ( srcWorkV, 0 ) );
      	float* G  = reinterpret_cast<float*>( planar_view_get_raw_data ( srcWorkV, 1 ) );
         float* B  = reinterpret_cast<float*>( planar_view_get_raw_data ( srcWorkV, 2 ) );
 	int downsample = 1;//durand02
-	
 //Convert from RGB to XYZ
 	boost::gil::transform_pixels ( srcWorkV, xyzView, convertRgbToXYZ<rgb32f_pixel_t, rgb32f_pixel_t>() );	
 
- /**/   float* YPtr  = reinterpret_cast<float*>( planar_view_get_raw_data ( xyzView, 1 ) ); // @param Y [in] image luminance values
-	float* LPtr = YPtr; // @param L [out] tone mapped values
+	float* XPtr  = reinterpret_cast<float*>( planar_view_get_raw_data ( xyzView, 0 ) );
+	float* YPtr  = reinterpret_cast<float*>( planar_view_get_raw_data ( xyzView, 1 ) ); // @param Y [in] image luminance values
+	float* ZPtr  = reinterpret_cast<float*>( planar_view_get_raw_data ( xyzView, 2 ) );	
+	float* LPtr = new float[src.size()] ; // @param L [out] tone mapped values
 
+	//unsigned int i=0 ;
 		switch(  _params._toneoperator )
 	{
 		case 0://drago03
 		//Drago03 operations
-			float avLum, maxLum;
-			calculateLuminance( src.width(), src.height(), YPtr, avLum, maxLum );
+			float avLum, maxLum;	// @param Average luminance and maximum luminance of the source
+			calculateLuminance( w, h, YPtr, avLum, maxLum );
 
-			tmo_drago03(src.width(), src.height(), YPtr, LPtr, maxLum, avLum, _params._Bias );
+			tmo_drago03(w, h, YPtr, LPtr, maxLum, avLum, _params._Bias );
+			
+			/*for (int l=0 ; l<w ; l++ )
+				for (int m=0 ; m<h ; m++ )
+				{ 
+					float scale = LPtr[i] / YPtr[i] ;
+					XPtr[i]	*= scale  ;
+					YPtr[i]	*= scale  ;
+					ZPtr[i]	*= scale  ;
+					++i;
+				}*/
+			for (unsigned int i=0 ; i<w*h ; i++ )
+			{ 
+				float scale = LPtr[i] / YPtr[i] ;
+				XPtr[i]	*= scale  ;
+				YPtr[i]	*= scale  ;
+				ZPtr[i]	*= scale  ;
+			}	// Rescaling of the 3 components with the new luminance values
 
-			i = 0;
-			for( int x=0 ; x<src.width()-1 ; x++ )
-			{
-			      for( int y=0 ; y<src.height()-1 ; y++ )
-			      { 
-				//bits32f
-				get_color( dst(x,y), red_t() )	 *= LPtr[i] ;
-				get_color( dst(x,y), green_t() ) *= LPtr[i]  ;
-				get_color( dst(x,y), blue_t() )	 *= LPtr[i]  ;
-				++i;
-			      }
-			}		  
+			boost::gil::transform_pixels ( xyzView, srcWorkV, convertXYZToRgb<rgb32f_pixel_t, rgb32f_pixel_t>() ); // Back 2 RGB
+			copy_and_convert_pixels( srcWorkV, dst );	
+				  
 		  break;
 		case 1: break;
 		case 2: break;
 		case 3: break;
 		case 4:
-		//Durand02 operations
-		tmo_durand02(w, h, R, G, B, _params._SpatialKernelSigma, _params._RangeKernelSigma, _params._BaseContrast, downsample);
-		i = 0;
-		for( int x=0 ; x<srcWorkV.width() ; x++ )
-		{
-		      for( int y=0 ; y<srcWorkV.height() ; y++ )
-		      { 
-			//bits32f
-			get_color( dst(x,y), red_t() )	 = R[i] ;
-			get_color( dst(x,y), green_t() ) = G[i]  ;
-			get_color( dst(x,y), blue_t() )	 = B[i]  ;
-			++i;
-		      }
-		}  
+		//Durand02 operations 	
+		//_____NOT WORKING_____(core dumped errors)
+		//tmo_durand02(w, h, R, G, B, _params._SpatialKernelSigma, _params._RangeKernelSigma, _params._BaseContrast, downsample);
+
 		  break;
 		case 5: break;
 		case 6: break;
@@ -248,6 +247,18 @@ void ToneMappingProcess<rgb32f_view_t>::multiThreadProcessImages( const OfxRectI
 
 	copy_pixels( src, dst );
 	TUTTLE_COUT("pass here: rgb32f...");
+	switch(  _params._toneoperator )
+	{
+		case 0: break;
+		case 1: break;
+		case 2: break;
+		case 3: break;
+		case 4: break;
+		case 5: break;
+		case 6: break;
+		case 7: break;
+		default:break;
+	}
 }
 
 
