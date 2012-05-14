@@ -28,7 +28,7 @@ SeamCarvingPlugin::SeamCarvingPlugin( OfxImageEffectHandle handle )
 
 	_paramSize      = fetchInt2DParam ( kParamSize );
 	_paramShowMap   = fetchBooleanParam ( kParamMap );
-	_paramShowSource= fetchBooleanParam ( kParamSource );
+	_paramShowSeamCarving= fetchBooleanParam ( kParamSeamCarving );
 }
 
 
@@ -44,7 +44,7 @@ SeamCarvingProcessParams<SeamCarvingPlugin::Scalar> SeamCarvingPlugin::getProces
 	params._clipDeleteMask = _deleteMaskClip;
 
 	params._showMap = _paramShowMap->getValue();
-	params._showSource = _paramShowSource->getValue();
+	params._showSeamCarving = _paramShowSeamCarving->getValue();
 
 	return params;
 }

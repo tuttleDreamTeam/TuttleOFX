@@ -82,9 +82,9 @@ void SeamCarvingPluginFactory::describeInContext( OFX::ImageEffectDescriptor& de
 	showMap->setDefault( true );
 
 	//switch d'affichage de la source :
-	OFX::BooleanParamDescriptor* showSource = desc.defineBooleanParam( kParamSource );
-	showSource->setLabel( kParamSourceLabel );
-	showSource->setDefault( true );
+	OFX::BooleanParamDescriptor* showSeamCarving = desc.defineBooleanParam( kParamSeamCarving );
+	showSeamCarving->setLabel( kParamSeamCarvingLabel );
+	showSeamCarving->setDefault( false );
 	
 	
 }

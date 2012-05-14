@@ -281,15 +281,10 @@ void SeamCarvingProcess<MapView, View>::multiThreadProcessImages( const OfxRectI
 	OfxRectI procWindowOutput = this->translateRoWToOutputClipCoordinates( procWindowRoW );
 	OfxPointI procWindowSize = { procWindowOutput.x2 - procWindowOutput.x1, procWindowOutput.y2 - procWindowOutput.y1 };
 	
-        //TUTTLE_COUT( procWindowOutput );
-        //TUTTLE_COUT( procWindowSize );
-	
 	/* Affichage de src et dst */
 	View src = subimage_view( this->_srcView, procWindowOutput.x1, procWindowOutput.y1, procWindowSize.x, procWindowSize.y );
 	View dst = subimage_view( this->_dstView, procWindowOutput.x1, procWindowOutput.y1, procWindowSize.x, procWindowSize.y );
-	
-	//TUTTLE_COUT_VAR(procWindowSize.x);
-	//TUTTLE_COUT_VAR(procWindowSize.y);
+
 	
 	/* Affichage de map --> gradient */
         MapView map = subimage_view( _mapView, procWindowOutput.x1, procWindowOutput.y1, procWindowSize.x, procWindowSize.y );
@@ -305,51 +300,101 @@ void SeamCarvingProcess<MapView, View>::multiThreadProcessImages( const OfxRectI
 	/* Image temporaire pendant SeamCarving Process : */
 	View processingSrc = subimage_view( this->_srcView, procWindowOutput.x1, procWindowOutput.y1, procWindowSize.x, procWindowSize.y );
 	
+	
 	std::vector<int> verticalSeamPosition( viewCumulSum.height() ); 	// vecteur seam vertical
 	std::vector<int> horizontalSeamPosition( viewCumulSum.width() ); 	// vecteur seam horizontal
 
 	
 	int iteration_x = src.width() - _params._outputSize.x;
-	TUTTLE_COUT_VAR(iteration_x);
 	int widthProcess = 0;
 	int iteration_y = src.height() - _params._outputSize.y;
-	TUTTLE_COUT_VAR(iteration_y);
 	int heightProcess = 0;
-
 	
 	
-	if( _params._showMap )
-        {
-		copy_and_convert_pixels( map, dst );
-		TUTTLE_COUT("showMap active");
-	}
-	/*else if( _params._showSource )
-        {
-		copy_and_convert_pixels( src, dst );
-		TUTTLE_COUT("showSource active");
-	}*/
-	else
+	if( _params._showSeamCarving )
 	{
 		TUTTLE_COUT("show Seam Carving");
+		TUTTLE_COUT_VAR(iteration_x);
+		TUTTLE_COUT_VAR(iteration_y);
 		time (&start);
 		
-		//Vertical reduction
-		for (int i = 0; i < iteration_x; i++)
+		if ( iteration_x > iteration_y )
 		{
-			widthProcess = src.width() - i;
-			ProcessVerticalCumulSum( map, viewDirMap, viewCumulSum, widthProcess);
-			ProcessFoundVerticalSeam( viewDirMap, viewCumulSum, verticalSeamPosition, widthProcess);
-			ProcessRemoveVerticalSeam(processingSrc, map, verticalSeamPosition);
+			int itDiffx = iteration_x - iteration_y;
+			TUTTLE_COUT_VAR(itDiffx);
+			for (int i = 0; i < iteration_y; i++)
+			{
+				//Vertical reduction
+				widthProcess = src.width() - i;
+				ProcessVerticalCumulSum( map, viewDirMap, viewCumulSum, widthProcess);
+				ProcessFoundVerticalSeam( viewDirMap, viewCumulSum, verticalSeamPosition, widthProcess);
+				ProcessRemoveVerticalSeam(processingSrc, map, verticalSeamPosition);
+				
+				//Horizontal reduction
+				heightProcess = src.height() - i;
+				ProcessHorizontalCumulSum( map, viewDirMap, viewCumulSum, heightProcess);
+				ProcessFoundHorizontalSeam( viewDirMap, viewCumulSum, horizontalSeamPosition, heightProcess );
+				ProcessRemoveHorizontalSeam(processingSrc, map, horizontalSeamPosition);
+			}
+			
+			for (int i = iteration_y; i < iteration_x; i++)
+			{
+				//Vertical reduction
+				widthProcess = src.width() - i;
+				ProcessVerticalCumulSum( map, viewDirMap, viewCumulSum, widthProcess);
+				ProcessFoundVerticalSeam( viewDirMap, viewCumulSum, verticalSeamPosition, widthProcess);
+				ProcessRemoveVerticalSeam(processingSrc, map, verticalSeamPosition);
+			}
 		}
 		
-		//Horizontal reduction
-		for (int i = 0; i < iteration_y; i++)
+		
+		if ( iteration_y > iteration_x )
 		{
-			heightProcess = src.height() - i;
-			ProcessHorizontalCumulSum( map, viewDirMap, viewCumulSum, heightProcess);
-			ProcessFoundHorizontalSeam( viewDirMap, viewCumulSum, horizontalSeamPosition, heightProcess );
-			ProcessRemoveHorizontalSeam(processingSrc, map, horizontalSeamPosition);
+			int itDiffy = iteration_y - iteration_x;
+			TUTTLE_COUT_VAR(itDiffy);
+			for (int i = 0; i < iteration_x; i++)
+			{
+				//Horizontal reduction
+				heightProcess = src.height() - i;
+				ProcessHorizontalCumulSum( map, viewDirMap, viewCumulSum, heightProcess);
+				ProcessFoundHorizontalSeam( viewDirMap, viewCumulSum, horizontalSeamPosition, heightProcess );
+				ProcessRemoveHorizontalSeam(processingSrc, map, horizontalSeamPosition);
+				
+				//Vertical reduction
+				widthProcess = src.width() - i;
+				ProcessVerticalCumulSum( map, viewDirMap, viewCumulSum, widthProcess);
+				ProcessFoundVerticalSeam( viewDirMap, viewCumulSum, verticalSeamPosition, widthProcess);
+				ProcessRemoveVerticalSeam(processingSrc, map, verticalSeamPosition);
+			}
+			
+			for (int i = iteration_x; i < iteration_y; i++)
+			{
+				//Horizontal reduction
+				heightProcess = src.height() - i;
+				ProcessHorizontalCumulSum( map, viewDirMap, viewCumulSum, heightProcess);
+				ProcessFoundHorizontalSeam( viewDirMap, viewCumulSum, horizontalSeamPosition, heightProcess );
+				ProcessRemoveHorizontalSeam(processingSrc, map, horizontalSeamPosition);
+			}
 		}
+		
+		if ( iteration_y == iteration_x )
+		{
+			for (int i = 0; i < iteration_x; i++)
+			{
+				//Vertical reduction
+				widthProcess = src.width() - i;
+				ProcessVerticalCumulSum( map, viewDirMap, viewCumulSum, widthProcess);
+				ProcessFoundVerticalSeam( viewDirMap, viewCumulSum, verticalSeamPosition, widthProcess);
+				ProcessRemoveVerticalSeam(processingSrc, map, verticalSeamPosition);
+
+				//Horizontal reduction
+				heightProcess = src.height() - i;
+				ProcessHorizontalCumulSum( map, viewDirMap, viewCumulSum, heightProcess);
+				ProcessFoundHorizontalSeam( viewDirMap, viewCumulSum, horizontalSeamPosition, heightProcess );
+				ProcessRemoveHorizontalSeam(processingSrc, map, horizontalSeamPosition);
+			}
+		}
+		
 		copy_and_convert_pixels( processingSrc, dst);
 		
 		time (&end);
@@ -357,6 +402,11 @@ void SeamCarvingProcess<MapView, View>::multiThreadProcessImages( const OfxRectI
 		TUTTLE_COUT_VAR(dif);
 		
         }
+        else if( _params._showMap )
+        {
+		copy_and_convert_pixels( map, dst );
+		TUTTLE_COUT("showMap active");
+	}
 }
 
 }

@@ -19,7 +19,7 @@ struct SeamCarvingProcessParams
 
 	boost::gil::point2<Scalar> _outputSize;
 	bool                       _showMap;
-	bool                       _showSource;
+	bool                       _showSeamCarving;
 };
 
 /**
@@ -61,7 +61,7 @@ public:
 
 	OFX::Int2DParam*    _paramSize;
 	OFX::BooleanParam*  _paramShowMap;
-	OFX::BooleanParam*  _paramShowSource;
+	OFX::BooleanParam*  _paramShowSeamCarving;
 };
 
 }
