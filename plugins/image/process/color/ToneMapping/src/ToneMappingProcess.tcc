@@ -20,6 +20,7 @@
 
 #include <tmo_drago03.h>
 #include <tmo_durand02.h>
+#include <tmo_reinhard05.h>
 
 namespace tuttle {
 namespace plugin {
@@ -212,7 +213,12 @@ void ToneMappingProcess<rgba32f_view_t>::multiThreadProcessImages( const OfxRect
 				  
 		  break;
 		case 1: break;
-		case 2: break;
+		case 2:
+			tmo_reinhard05(w, h, R, G, B, YPtr, _params._Brightness, _params._ChromaticAdaptation, _params._LightAdaptation);
+			//boost::gil::transform_pixels ( xyzView, srcWorkV, convertXYZToRgb<rgb32f_pixel_t, rgb32f_pixel_t>() ); // Back 2 RGB
+			copy_and_convert_pixels( srcWorkV, dst );
+		  
+		  break;
 		case 3: break;
 		case 4:
 		//Durand02 operations 	

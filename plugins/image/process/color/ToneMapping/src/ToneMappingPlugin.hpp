@@ -22,11 +22,18 @@ struct ToneMappingProcessParams
 
 	bool              _processLocal;
 	bool              _autoConeRod;
+	
+//reinhard05
+	double            _Brightness;
+	double            _ChromaticAdaptation;
+	double            _LightAdaptation;	
+	
 //durand02
 	double            _BaseContrast;
 	double            _SpatialKernelSigma;
 	double            _RangeKernelSigma;
 
+  
 };
 
 /**
@@ -57,7 +64,9 @@ public:
 
 	OFX::GroupParam* 	_drago03Group;
 	OFX::GroupParam* 	_pattanaik00Group;
+	OFX::GroupParam* 	_reinhard05Group;
 	OFX::GroupParam* 	_durand02Group;
+
 /**/
 //drago03
 	OFX::DoubleParam*       _paramBias;
@@ -69,11 +78,18 @@ public:
 
 	OFX::BooleanParam*      _paramProcessLocal;
 	OFX::BooleanParam*      _paramAutoConeRod;
+	
+//reinhard05	
+	OFX::DoubleParam*       _paramBrightness;
+	OFX::DoubleParam*       _paramChromaticAdaptation;
+	OFX::DoubleParam*       _paramLightAdaptation;
 
 //durand02
 	OFX::DoubleParam*       _paramBaseContrast;
 	OFX::DoubleParam*       _paramSpatialKernelSigma;
 	OFX::DoubleParam*       _paramRangeKernelSigma;
+	
+
 };
 
 }

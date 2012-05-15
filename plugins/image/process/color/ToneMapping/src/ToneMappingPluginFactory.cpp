@@ -68,7 +68,7 @@ void ToneMappingPluginFactory::describeInContext( OFX::ImageEffectDescriptor& de
 	toneoperator->setHint( "Tone Mapping Algorithm" );
 	toneoperator->appendOption( kParamToneOperator_drago03 );
 	toneoperator->appendOption( kParamToneOperator_pattanaik00 );
-	toneoperator->appendOption( kParamToneOperator_reinhard04 );
+	toneoperator->appendOption( kParamToneOperator_reinhard05 );
 	toneoperator->appendOption( kParamToneOperator_reinhard02 );
 	toneoperator->appendOption( kParamToneOperator_durand02 );
 	//toneoperator->appendOption( kParamToneOperator_ashikhmin );
@@ -84,9 +84,16 @@ void ToneMappingPluginFactory::describeInContext( OFX::ImageEffectDescriptor& de
 	pattanaik00Group->setLabel( "Pattanaik00" );
 	pattanaik00Group->setOpen(false );
 
+	OFX::GroupParamDescriptor* reinhard05Group = desc.defineGroupParam( kParamreinhard05Group );
+	reinhard05Group->setLabel( "Reinhard05" );
+	reinhard05Group->setOpen( false );
+	
 	OFX::GroupParamDescriptor* durand02Group = desc.defineGroupParam( kParamdurand02Group );
 	durand02Group->setLabel( "Durand02" );
 	durand02Group->setOpen( false );
+	
+
+	
 /**/
 //drago03
 	OFX::DoubleParamDescriptor* bias = desc.defineDoubleParam( kBias );
@@ -133,6 +140,31 @@ void ToneMappingPluginFactory::describeInContext( OFX::ImageEffectDescriptor& de
 	autoconerod->setHint( "Automatic computing of the rod and cone values" );
 	autoconerod->setDefault( false );
 	autoconerod->setParent( pattanaik00Group );
+	
+//reinhard05
+	OFX::DoubleParamDescriptor* brightness = desc.defineDoubleParam( kBrightness );
+	brightness->setLabel			( "Brightness" );
+	brightness->setDefault			(0.0 );
+	brightness->setRange			(-std::numeric_limits<double>::max(), std::numeric_limits<double>::max() );
+	brightness->setDisplayRange		(-8.0, 8.0 );
+	brightness->setHint			( "Adjust the base brightness." );
+	brightness->setParent( reinhard05Group );
+
+	OFX::DoubleParamDescriptor* chromaticAdaptation = desc.defineDoubleParam( kChromaticAdaptation );
+	chromaticAdaptation->setLabel		( "Chromatic Adaptation" );
+	chromaticAdaptation->setDefault		( 0.0 );
+	chromaticAdaptation->setRange		( 0.0, std::numeric_limits<double>::max() );
+	chromaticAdaptation->setDisplayRange	( 0.0, 1.0 );
+	chromaticAdaptation->setHint		( "Adjust the Spatial Chromatic Adaptation." );
+	chromaticAdaptation->setParent( reinhard05Group );
+
+	OFX::DoubleParamDescriptor* lightAdaptation = desc.defineDoubleParam( kLightAdaptation );
+	lightAdaptation->setLabel		( "Light Adaptation" );
+	lightAdaptation->setDefault		( 0.0 );
+	lightAdaptation->setRange		( 0.0, std::numeric_limits<double>::max() );
+	lightAdaptation->setDisplayRange	( 0.0, 1.0 );
+	lightAdaptation->setHint		( "Adjust the Light Adaptation." );
+	lightAdaptation->setParent( reinhard05Group );
 
 //durand02
 	OFX::DoubleParamDescriptor* baseContrast = desc.defineDoubleParam( kBaseContrast );
@@ -158,6 +190,11 @@ void ToneMappingPluginFactory::describeInContext( OFX::ImageEffectDescriptor& de
 	rangeKernelSigma->setDisplayRange	( 0.0, 10.0 );
 	rangeKernelSigma->setHint		( "Adjust the Range Kernel Sigma." );
 	rangeKernelSigma->setParent( durand02Group );
+	
+	
+	
+
+	
 
 	OFX::PushButtonParamDescriptor* bydefault = desc.definePushButtonParam( kParamDefault );
 	bydefault->setLabel( "Default" );

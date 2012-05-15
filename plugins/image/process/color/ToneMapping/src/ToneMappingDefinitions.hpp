@@ -13,12 +13,13 @@ const std::string kParamToneOperator  = "operator";
 static const std::string kParamdrago03Group = "drago03Group";
 static const std::string kParampattanaik00Group = "pattanaik00Group";
 static const std::string kParamdurand02Group = "durand02Group";
+static const std::string kParamreinhard05Group = "reinhard05group";
 /**/
 const std::string kParamDefault              = "reset parameters with default values";
 
 const std::string kParamToneOperator_drago03    = "Drago03";
 const std::string kParamToneOperator_pattanaik00    = "Pattanaik00";
-const std::string kParamToneOperator_reinhard04    = "Reinhard04";
+const std::string kParamToneOperator_reinhard05    = "Reinhard05";
 const std::string kParamToneOperator_reinhard02    = "Reinhard02";
 const std::string kParamToneOperator_durand02   = "Durand02";
 const std::string kParamToneOperator_ashikhmin  = "Ashikhmin";
@@ -29,7 +30,7 @@ enum EParamToneOperator
 {
 	eParamToneOperator_drago03 = 0,
 	eParamToneOperator_pattanaik00,
-	eParamToneOperator_reinhard04,
+	eParamToneOperator_reinhard05,
 	eParamToneOperator_reinhard02,
 	eParamToneOperator_durand02,
 	eParamToneOperator_ashikhmin,
@@ -46,6 +47,12 @@ static const std::string kCone	= "Cone";
 
 const std::string kParamProcessLocal	= "processLocal";
 const std::string kParamAutoConeRod	= "autoConeRod";
+
+//reinhard05
+static const std::string kBrightness= "Brightness";
+static const std::string kChromaticAdaptation = "ChromaticAdaptation";
+static const std::string kLightAdaptation = "LightAdaptation";
+
 //durand02
 static const std::string kBaseContrast	= "BaseContrast";
 static const std::string kSpatialKernelSigma	= "SpatialKernelSigma";

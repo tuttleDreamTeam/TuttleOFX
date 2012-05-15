@@ -18,6 +18,7 @@ ToneMappingPlugin::ToneMappingPlugin( OfxImageEffectHandle handle )
 	_drago03Group = fetchGroupParam( kParamdrago03Group );
 	_pattanaik00Group = fetchGroupParam( kParampattanaik00Group );
 	_durand02Group = fetchGroupParam( kParamdurand02Group );
+	_reinhard05Group = fetchGroupParam( kParamreinhard05Group );
 /**/
 //drago03
 	_paramBias         = fetchDoubleParam( kBias    ); 
@@ -28,12 +29,19 @@ ToneMappingPlugin::ToneMappingPlugin( OfxImageEffectHandle handle )
 
 	_paramProcessLocal    = fetchBooleanParam( kParamProcessLocal );
 	_paramAutoConeRod     = fetchBooleanParam( kParamAutoConeRod );
+	
+//reinhard05
+	_paramBrightness        = fetchDoubleParam( kBrightness); 
+	_paramChromaticAdaptation        = fetchDoubleParam( kChromaticAdaptation); 
+	_paramLightAdaptation        = fetchDoubleParam( kLightAdaptation); 
+	
 //durand02
 	_paramBaseContrast         = fetchDoubleParam( kBaseContrast   );
 	_paramSpatialKernelSigma   = fetchDoubleParam( kSpatialKernelSigma   );
 	_paramRangeKernelSigma   = fetchDoubleParam( kRangeKernelSigma   );
-
-	updateParameters();
+	
+	
+	 updateParameters();	
 }
 
 ToneMappingProcessParams<ToneMappingPlugin::Scalar> ToneMappingPlugin::getProcessParams( const OfxPointD& renderScale ) const
@@ -49,10 +57,18 @@ ToneMappingProcessParams<ToneMappingPlugin::Scalar> ToneMappingPlugin::getProces
 
 	params._processLocal    = _paramProcessLocal    ->getValue();
 	params._autoConeRod     = _paramAutoConeRod     ->getValue();
+	
+//reinhard05
+	params._Brightness	        = _paramBrightness	        ->getValue();
+	params._ChromaticAdaptation	= _paramChromaticAdaptation	->getValue();
+	params._LightAdaptation  	= _paramLightAdaptation	        ->getValue();
+	
 //durand02
-	params._BaseContrast   	= _paramBaseContrast    ->getValue();
+	params._BaseContrast   	        = _paramBaseContrast           ->getValue();
 	params._SpatialKernelSigma   	= _paramSpatialKernelSigma     ->getValue();
-	params._RangeKernelSigma   	= _paramRangeKernelSigma     ->getValue();
+	params._RangeKernelSigma   	= _paramRangeKernelSigma       ->getValue();
+	
+
 	return params;
 }
 
@@ -62,11 +78,15 @@ void ToneMappingPlugin::updateParameters()
 	_paramMult        ->setIsSecretAndDisabled( true );
 	_paramRod         ->setIsSecretAndDisabled( true );
 	_paramCone        ->setIsSecretAndDisabled( true );
-	_paramProcessLocal	->setIsSecretAndDisabled( true );
-	_paramAutoConeRod	->setIsSecretAndDisabled( true );
-	_paramBaseContrast	->setIsSecretAndDisabled( true );
-	_paramSpatialKernelSigma->setIsSecretAndDisabled( true );
-	_paramRangeKernelSigma	->setIsSecretAndDisabled( true );
+	_paramProcessLocal	   ->setIsSecretAndDisabled( true );
+	_paramAutoConeRod	   ->setIsSecretAndDisabled( true );
+	_paramBrightness           ->setIsSecretAndDisabled( true );
+	_paramChromaticAdaptation  ->setIsSecretAndDisabled( true );
+	_paramLightAdaptation      ->setIsSecretAndDisabled( true );
+	_paramBaseContrast	   ->setIsSecretAndDisabled( true );
+	_paramSpatialKernelSigma  ->setIsSecretAndDisabled( true );
+	_paramRangeKernelSigma	   ->setIsSecretAndDisabled( true );
+
 //OFX Groups
 	//drago03Group->setOpen( false );
 	//pattanaik00Group->setOpen(false );
@@ -86,7 +106,12 @@ void ToneMappingPlugin::updateParameters()
 			_paramAutoConeRod->setIsSecretAndDisabled( false );
 			//pattanaik00Group->setOpen( true );
 			break;
-		case 2: break;
+		case 2: //reinhard05
+			_paramBrightness->setIsSecretAndDisabled( false );
+			_paramChromaticAdaptation->setIsSecretAndDisabled( false );
+			_paramLightAdaptation->setIsSecretAndDisabled( false );
+			//reinhard05Group->setOpen( true )
+			 break;
 		case 3: break;
 		case 4: // durand02
 			_paramBaseContrast->setIsSecretAndDisabled( false );
@@ -120,7 +145,11 @@ void ToneMappingPlugin::changedParam( const OFX::InstanceChangedArgs& args, cons
 					_paramProcessLocal->setValue( false );
 					_paramAutoConeRod->setValue( false );
 					break;
-				case 2: break;
+				case 2: //reinhard05
+					_paramBrightness->setValue( 0.0 );
+					_paramChromaticAdaptation->setValue( 0.0 );
+					_paramLightAdaptation->setValue( 0.0 );
+					break;
 				case 3: break;
 				case 4: // durand02
 					_paramBaseContrast->setValue( 5.0 );
