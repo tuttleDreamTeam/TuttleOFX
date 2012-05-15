@@ -19,8 +19,9 @@
 #include <boost/static_assert.hpp>
 
 #include <tmo_drago03.h>
-#include <tmo_durand02.h>
 #include <tmo_reinhard05.h>
+#include <tmo_reinhard02.h>
+#include <tmo_durand02.h>
 
 namespace tuttle {
 namespace plugin {
@@ -155,6 +156,9 @@ void ToneMappingProcess<rgba32f_view_t>::multiThreadProcessImages( const OfxRect
 
 	TUTTLE_COUT("pass here: rgba32f...");
 	copy_pixels( src, dst );
+
+	unsigned int w = src.width();
+	unsigned int h = src.height();
 	
 //Creation of the work view and xyz view
         const std::size_t alignment = 2;
@@ -165,66 +169,73 @@ void ToneMappingProcess<rgba32f_view_t>::multiThreadProcessImages( const OfxRect
 
 	rgb32f_planar_image_t xyzImg( procWindowSize.x, procWindowSize.y, alignment );
         rgb32f_planar_view_t  xyzView = view( xyzImg );
-	
-//Creation of the work view' R,G and B pointers, and size variables	
-	unsigned int w = src.width();
-	unsigned int h = src.height();
+
+	boost::gil::transform_pixels ( srcWorkV, xyzView, convertRgbToXYZ<rgb32f_pixel_t, rgb32f_pixel_t>() );	
+		
+//Creation of the RGB pointers	
 	float* R  = reinterpret_cast<float*>( planar_view_get_raw_data ( srcWorkV, 0 ) );
      	float* G  = reinterpret_cast<float*>( planar_view_get_raw_data ( srcWorkV, 1 ) );
         float* B  = reinterpret_cast<float*>( planar_view_get_raw_data ( srcWorkV, 2 ) );
-	int downsample = 1;//durand02
-//Convert from RGB to XYZ
-	boost::gil::transform_pixels ( srcWorkV, xyzView, convertRgbToXYZ<rgb32f_pixel_t, rgb32f_pixel_t>() );	
-
+//Creation of the RGB pointers and new luminance L pointer
 	float* XPtr  = reinterpret_cast<float*>( planar_view_get_raw_data ( xyzView, 0 ) );
 	float* YPtr  = reinterpret_cast<float*>( planar_view_get_raw_data ( xyzView, 1 ) ); // @param Y [in] image luminance values
 	float* ZPtr  = reinterpret_cast<float*>( planar_view_get_raw_data ( xyzView, 2 ) );	
 	float* LPtr = new float[src.size()] ; // @param L [out] tone mapped values
 
-	//unsigned int i=0 ;
+
 		switch(  _params._toneoperator )
 	{
-		case 0://drago03
-		//Drago03 operations
-			float avLum, maxLum;	// @param Average luminance and maximum luminance of the source
-			calculateLuminance( w, h, YPtr, avLum, maxLum );
+		case 0:
+		  //drago03
+		  float avLum, maxLum;	// @param Average luminance and maximum luminance of the source
+		  calculateLuminance( w, h, YPtr, avLum, maxLum );
 
-			tmo_drago03(w, h, YPtr, LPtr, maxLum, avLum, _params._Bias );
-			
-			/*for (int l=0 ; l<w ; l++ )
-				for (int m=0 ; m<h ; m++ )
-				{ 
-					float scale = LPtr[i] / YPtr[i] ;
-					XPtr[i]	*= scale  ;
-					YPtr[i]	*= scale  ;
-					ZPtr[i]	*= scale  ;
-					++i;
-				}*/
-			for (unsigned int i=0 ; i<w*h ; i++ )
-			{ 
-				float scale = LPtr[i] / YPtr[i] ;
-				XPtr[i]	*= scale  ;
-				YPtr[i]	*= scale  ;
-				ZPtr[i]	*= scale  ;
-			}	// Rescaling of the 3 components with the new luminance values
+		  tmo_drago03(w, h, YPtr, LPtr, maxLum, avLum, _params._Bias );
 
-			boost::gil::transform_pixels ( xyzView, srcWorkV, convertXYZToRgb<rgb32f_pixel_t, rgb32f_pixel_t>() ); // Back 2 RGB
-			copy_and_convert_pixels( srcWorkV, dst );	
+		  for (unsigned int i=0 ; i<w*h ; i++ )
+		  { 
+			  float scale = LPtr[i] / YPtr[i] ;
+			  XPtr[i]	*= scale  ;
+			  YPtr[i]	*= scale  ;
+			  ZPtr[i]	*= scale  ;
+		  }	// Rescaling of the 3 components with the new luminance values
+
+		  boost::gil::transform_pixels ( xyzView, srcWorkV, convertXYZToRgb<rgb32f_pixel_t, rgb32f_pixel_t>() ); // Back 2 RGB
+		  copy_and_convert_pixels( srcWorkV, dst );	
 				  
 		  break;
 		case 1: break;
 		case 2:
-			tmo_reinhard05(w, h, R, G, B, YPtr, _params._Brightness, _params._ChromaticAdaptation, _params._LightAdaptation);
-			//boost::gil::transform_pixels ( xyzView, srcWorkV, convertXYZToRgb<rgb32f_pixel_t, rgb32f_pixel_t>() ); // Back 2 RGB
-			copy_and_convert_pixels( srcWorkV, dst );
+		  //reinhard05
+		  tmo_reinhard05(w, h, R, G, B, YPtr, _params._Brightness, _params._ChromaticAdaptation, _params._LightAdaptation);
+		  copy_and_convert_pixels( srcWorkV, dst ); 
+		  break;
+		case 3:
+		  //reinhard02
+		 /* @param use_scales true: local version, false: global version of TMO
+		  * @param key maps log average luminance to this value (default: 0.18)
+		  * @param phi sharpening parameter (defaults to 1 - no sharpening)
+		  * @param num number of scales to use in computation (default: 8)
+		  * @param low size in pixels of smallest scale (should be kept at 1)
+		  * @param high size in pixels of largest scale (default 1.6^8 = 43) */ 
+		  tmo_reinhard02( w, h, YPtr, LPtr, 1, _params._key, _params._phi, 8, 1, 43, 0/*temporal_coherent*/ );
+		  
+		  		  for (unsigned int i=0 ; i<w*h ; i++ )
+		  { 
+			  float scale = LPtr[i] / YPtr[i] ;
+			  XPtr[i]	*= scale  ;
+			  YPtr[i]	*= scale  ;
+			  ZPtr[i]	*= scale  ;
+		  }	// Rescaling of the 3 components with the new luminance values
+
+		  boost::gil::transform_pixels ( xyzView, srcWorkV, convertXYZToRgb<rgb32f_pixel_t, rgb32f_pixel_t>() ); // Back 2 RGB
+		  copy_and_convert_pixels( srcWorkV, dst );
 		  
 		  break;
-		case 3: break;
 		case 4:
 		//Durand02 operations 	
 		//_____NOT WORKING_____(core dumped errors)
 		//tmo_durand02(w, h, R, G, B, _params._SpatialKernelSigma, _params._RangeKernelSigma, _params._BaseContrast, downsample);
-
 		  break;
 		case 5: break;
 		case 6: break;

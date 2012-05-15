@@ -35,6 +35,10 @@ ToneMappingPlugin::ToneMappingPlugin( OfxImageEffectHandle handle )
 	_paramChromaticAdaptation        = fetchDoubleParam( kChromaticAdaptation); 
 	_paramLightAdaptation        = fetchDoubleParam( kLightAdaptation); 
 	
+//reinhard02
+	_paramKey        = fetchDoubleParam( kKey); 
+	_paramPhi        = fetchDoubleParam( kPhi); 
+	
 //durand02
 	_paramBaseContrast         = fetchDoubleParam( kBaseContrast   );
 	_paramSpatialKernelSigma   = fetchDoubleParam( kSpatialKernelSigma   );
@@ -62,6 +66,10 @@ ToneMappingProcessParams<ToneMappingPlugin::Scalar> ToneMappingPlugin::getProces
 	params._Brightness	        = _paramBrightness	        ->getValue();
 	params._ChromaticAdaptation	= _paramChromaticAdaptation	->getValue();
 	params._LightAdaptation  	= _paramLightAdaptation	        ->getValue();
+
+//reinhard02
+	params._key	        = _paramKey	        ->getValue();
+	params._phi		= _paramPhi		->getValue();
 	
 //durand02
 	params._BaseContrast   	        = _paramBaseContrast           ->getValue();
@@ -75,14 +83,20 @@ ToneMappingProcessParams<ToneMappingPlugin::Scalar> ToneMappingPlugin::getProces
 void ToneMappingPlugin::updateParameters()
 {
 	_paramBias        ->setIsSecretAndDisabled( true );
+	
 	_paramMult        ->setIsSecretAndDisabled( true );
 	_paramRod         ->setIsSecretAndDisabled( true );
 	_paramCone        ->setIsSecretAndDisabled( true );
 	_paramProcessLocal	   ->setIsSecretAndDisabled( true );
 	_paramAutoConeRod	   ->setIsSecretAndDisabled( true );
+	
 	_paramBrightness           ->setIsSecretAndDisabled( true );
 	_paramChromaticAdaptation  ->setIsSecretAndDisabled( true );
 	_paramLightAdaptation      ->setIsSecretAndDisabled( true );
+
+	_paramKey        ->setIsSecretAndDisabled( true );
+	_paramPhi       ->setIsSecretAndDisabled( true );
+	
 	_paramBaseContrast	   ->setIsSecretAndDisabled( true );
 	_paramSpatialKernelSigma  ->setIsSecretAndDisabled( true );
 	_paramRangeKernelSigma	   ->setIsSecretAndDisabled( true );
@@ -112,7 +126,10 @@ void ToneMappingPlugin::updateParameters()
 			_paramLightAdaptation->setIsSecretAndDisabled( false );
 			//reinhard05Group->setOpen( true )
 			 break;
-		case 3: break;
+		case 3://reinhard02
+			_paramKey        ->setIsSecretAndDisabled( false );
+			_paramPhi       ->setIsSecretAndDisabled( false );		  
+		  break;
 		case 4: // durand02
 			_paramBaseContrast->setIsSecretAndDisabled( false );
 			_paramSpatialKernelSigma->setIsSecretAndDisabled( false );
@@ -150,7 +167,10 @@ void ToneMappingPlugin::changedParam( const OFX::InstanceChangedArgs& args, cons
 					_paramChromaticAdaptation->setValue( 0.0 );
 					_paramLightAdaptation->setValue( 0.0 );
 					break;
-				case 3: break;
+				case 3:
+					_paramKey->setValue( 0.18 );
+					_paramPhi->setValue( 1.0 );
+				  break;
 				case 4: // durand02
 					_paramBaseContrast->setValue( 5.0 );
 					_paramSpatialKernelSigma->setValue( 2.0 );

@@ -8,7 +8,7 @@ namespace tuttle {
 namespace plugin {
 namespace toneMapping {
 
-static const bool kSupportTiles = false;
+static const bool kSupportTiles = false;	
 
 /**
  * @brief Function called to describe the plugin main features.
@@ -70,7 +70,7 @@ void ToneMappingPluginFactory::describeInContext( OFX::ImageEffectDescriptor& de
 	toneoperator->appendOption( kParamToneOperator_pattanaik00 );
 	toneoperator->appendOption( kParamToneOperator_reinhard05 );
 	toneoperator->appendOption( kParamToneOperator_reinhard02 );
-	toneoperator->appendOption( kParamToneOperator_durand02 );
+	//toneoperator->appendOption( kParamToneOperator_durand02 );
 	//toneoperator->appendOption( kParamToneOperator_ashikhmin );
 	//toneoperator->appendOption( kParamToneOperator_fattal );
 	//toneoperator->appendOption( kParamToneOperator_mantiuk );
@@ -87,6 +87,10 @@ void ToneMappingPluginFactory::describeInContext( OFX::ImageEffectDescriptor& de
 	OFX::GroupParamDescriptor* reinhard05Group = desc.defineGroupParam( kParamreinhard05Group );
 	reinhard05Group->setLabel( "Reinhard05" );
 	reinhard05Group->setOpen( false );
+
+	OFX::GroupParamDescriptor* reinhard02Group = desc.defineGroupParam( kParamreinhard02Group );
+	reinhard02Group->setLabel( "Reinhard02" );
+	reinhard02Group->setOpen( false );
 	
 	OFX::GroupParamDescriptor* durand02Group = desc.defineGroupParam( kParamdurand02Group );
 	durand02Group->setLabel( "Durand02" );
@@ -158,6 +162,7 @@ void ToneMappingPluginFactory::describeInContext( OFX::ImageEffectDescriptor& de
 	chromaticAdaptation->setHint		( "Adjust the Spatial Chromatic Adaptation." );
 	chromaticAdaptation->setParent( reinhard05Group );
 
+
 	OFX::DoubleParamDescriptor* lightAdaptation = desc.defineDoubleParam( kLightAdaptation );
 	lightAdaptation->setLabel		( "Light Adaptation" );
 	lightAdaptation->setDefault		( 0.0 );
@@ -165,7 +170,24 @@ void ToneMappingPluginFactory::describeInContext( OFX::ImageEffectDescriptor& de
 	lightAdaptation->setDisplayRange	( 0.0, 1.0 );
 	lightAdaptation->setHint		( "Adjust the Light Adaptation." );
 	lightAdaptation->setParent( reinhard05Group );
+	
+//reinhard02
+	OFX::DoubleParamDescriptor* key = desc.defineDoubleParam( kKey );
+	key->setLabel			( "Key" );
+	key->setDefault			(0.18 );
+	key->setRange			(0.0, std::numeric_limits<double>::max() );
+	key->setDisplayRange		(0.0, 1.0 );
+	key->setHint			( "Adjust the key." );
+	key->setParent( reinhard02Group );
 
+	OFX::DoubleParamDescriptor* phi = desc.defineDoubleParam( kPhi );
+	phi->setLabel			( "Phi" );
+	phi->setDefault			( 1.0 );
+	phi->setRange			( 0.0, std::numeric_limits<double>::max() );
+	phi->setDisplayRange		( 0.0, 100.0 );
+	phi->setHint			( "Adjust the phi." );
+	phi->setParent( reinhard02Group );
+	
 //durand02
 	OFX::DoubleParamDescriptor* baseContrast = desc.defineDoubleParam( kBaseContrast );
 	baseContrast->setLabel			( "Base Contrast" );

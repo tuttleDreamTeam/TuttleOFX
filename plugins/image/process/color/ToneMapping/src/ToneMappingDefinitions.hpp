@@ -12,8 +12,9 @@ const std::string kParamToneOperator  = "operator";
 //a group of parameters for each algo ???
 static const std::string kParamdrago03Group = "drago03Group";
 static const std::string kParampattanaik00Group = "pattanaik00Group";
-static const std::string kParamdurand02Group = "durand02Group";
 static const std::string kParamreinhard05Group = "reinhard05group";
+static const std::string kParamreinhard02Group = "reinhard02group";
+static const std::string kParamdurand02Group = "durand02Group";
 /**/
 const std::string kParamDefault              = "reset parameters with default values";
 
@@ -52,6 +53,10 @@ const std::string kParamAutoConeRod	= "autoConeRod";
 static const std::string kBrightness= "Brightness";
 static const std::string kChromaticAdaptation = "ChromaticAdaptation";
 static const std::string kLightAdaptation = "LightAdaptation";
+
+//reinhard02
+static const std::string kKey= "Key";
+static const std::string kPhi = "Phi";
 
 //durand02
 static const std::string kBaseContrast	= "BaseContrast";
