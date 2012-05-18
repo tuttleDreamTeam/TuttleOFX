@@ -72,7 +72,7 @@ void ToneMappingPluginFactory::describeInContext( OFX::ImageEffectDescriptor& de
 	toneoperator->appendOption( kParamToneOperator_reinhard02 );
 	toneoperator->appendOption( kParamToneOperator_durand02 );
 	//toneoperator->appendOption( kParamToneOperator_ashikhmin );
-	//toneoperator->appendOption( kParamToneOperator_fattal );
+	toneoperator->appendOption( kParamToneOperator_fattal02 );
 	//toneoperator->appendOption( kParamToneOperator_mantiuk );
 	toneoperator->setDefault( eParamToneOperator_drago03 );
 
@@ -96,6 +96,9 @@ void ToneMappingPluginFactory::describeInContext( OFX::ImageEffectDescriptor& de
 	durand02Group->setLabel( "Durand02" );
 	durand02Group->setOpen( false );
 	
+	OFX::GroupParamDescriptor* fattal02Group = desc.defineGroupParam( kParamfattal02Group );
+	fattal02Group->setLabel( "Fattal02" );
+	fattal02Group->setOpen( false );
 
 	
 /**/
@@ -213,7 +216,30 @@ void ToneMappingPluginFactory::describeInContext( OFX::ImageEffectDescriptor& de
 	rangeKernelSigma->setHint		( "Adjust the Range Kernel Sigma." );
 	rangeKernelSigma->setParent( durand02Group );
 	
-	
+//fattal02
+	OFX::DoubleParamDescriptor* alpha = desc.defineDoubleParam( kAlpha );
+	alpha->setLabel				( "Alpha" );
+	alpha->setDefault			( 1.0 );
+	alpha->setRange				( 0.0, std::numeric_limits<double>::max() );
+	alpha->setDisplayRange			( 0.0, 2.0 );
+	alpha->setHint				( "Adjust the base Alpha." );
+	alpha->setParent( fattal02Group );
+
+	OFX::DoubleParamDescriptor* beta = desc.defineDoubleParam( kBeta);
+	beta->setLabel				( "Beta" );
+	beta->setDefault			( 0.9 );
+	beta->setRange				( 0.0, std::numeric_limits<double>::max() );
+	beta->setDisplayRange			( 0.1, 2.0 );
+	beta->setHint				( "Adjust the Beta." );
+	beta->setParent( fattal02Group );
+
+	OFX::DoubleParamDescriptor* noiseReduction = desc.defineDoubleParam( kNoiseReduction );
+	noiseReduction->setLabel		( "Noise Reduction" );
+	noiseReduction->setDefault		( 0.0 );
+	noiseReduction->setRange		( 0.0, std::numeric_limits<double>::max() );
+	noiseReduction->setDisplayRange		( 0.0, 1.0 );
+	noiseReduction->setHint			( "Adjust the Noise Reduction." );
+	noiseReduction->setParent( fattal02Group );	
 	
 
 	

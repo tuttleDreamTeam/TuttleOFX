@@ -28,7 +28,7 @@ struct ToneMappingProcessParams
 	double            _ChromaticAdaptation;
 	double            _LightAdaptation;	
 	
-//reinhard05
+//reinhard02
 	double            _key;
 	double            _phi;
 	
@@ -37,6 +37,11 @@ struct ToneMappingProcessParams
 	double            _SpatialKernelSigma;
 	double            _RangeKernelSigma;
 
+//fattal02
+	double            _Alpha;
+	double            _Beta;
+	double            _NoiseReduction;
+	
   
 };
 
@@ -71,6 +76,7 @@ public:
 	OFX::GroupParam* 	_reinhard05Group;
 	OFX::GroupParam* 	_reinhard02Group;
 	OFX::GroupParam* 	_durand02Group;
+	OFX::GroupParam* 	_fattal02Group;
 
 /**/
 //drago03
@@ -98,7 +104,10 @@ public:
 	OFX::DoubleParam*       _paramSpatialKernelSigma;
 	OFX::DoubleParam*       _paramRangeKernelSigma;
 	
-
+//fattal02
+	OFX::DoubleParam*       _paramAlpha;
+	OFX::DoubleParam*       _paramBeta;
+	OFX::DoubleParam*       _paramNoiseReduction;
 };
 
 }

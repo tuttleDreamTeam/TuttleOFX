@@ -20,6 +20,7 @@ ToneMappingPlugin::ToneMappingPlugin( OfxImageEffectHandle handle )
 	_reinhard05Group = fetchGroupParam( kParamreinhard05Group );
 	_reinhard05Group = fetchGroupParam( kParamreinhard02Group );
 	_durand02Group = fetchGroupParam( kParamdurand02Group );
+	_fattal02Group = fetchGroupParam( kParamfattal02Group );
 /**/
 //drago03
 	_paramBias         = fetchDoubleParam( kBias    ); 
@@ -44,6 +45,11 @@ ToneMappingPlugin::ToneMappingPlugin( OfxImageEffectHandle handle )
 	_paramBaseContrast         = fetchDoubleParam( kBaseContrast   );
 	_paramSpatialKernelSigma   = fetchDoubleParam( kSpatialKernelSigma   );
 	_paramRangeKernelSigma   = fetchDoubleParam( kRangeKernelSigma   );
+	
+//fattal02
+	_paramAlpha        = fetchDoubleParam( kAlpha   );
+	_paramBeta  = fetchDoubleParam( kBeta   );
+	_paramNoiseReduction  = fetchDoubleParam( kNoiseReduction  );
 	
 	
 	 updateParameters();	
@@ -77,6 +83,13 @@ ToneMappingProcessParams<ToneMappingPlugin::Scalar> ToneMappingPlugin::getProces
 	params._SpatialKernelSigma   	= _paramSpatialKernelSigma     ->getValue();
 	params._RangeKernelSigma   	= _paramRangeKernelSigma       ->getValue();
 	
+	
+	
+//fattal2
+	params._Alpha  	        	= _paramAlpha  			->getValue();
+	params._Beta   			= _paramBeta     		->getValue();
+	params._NoiseReduction  	= _paramNoiseReduction       	->getValue();
+
 
 	return params;
 }
@@ -101,6 +114,10 @@ void ToneMappingPlugin::updateParameters()
 	_paramBaseContrast	   ->setIsSecretAndDisabled( true );
 	_paramSpatialKernelSigma  ->setIsSecretAndDisabled( true );
 	_paramRangeKernelSigma	   ->setIsSecretAndDisabled( true );
+	
+	_paramAlpha	  	->setIsSecretAndDisabled( true );
+	_paramBeta 		->setIsSecretAndDisabled( true );
+	_paramNoiseReduction	->setIsSecretAndDisabled( true );
 
 //OFX Groups
 	//drago03Group->setOpen( false );
@@ -134,10 +151,16 @@ void ToneMappingPlugin::updateParameters()
 		case 4: // durand02
 			_paramBaseContrast->setIsSecretAndDisabled( false );
 			_paramSpatialKernelSigma->setIsSecretAndDisabled( false );
-			_paramRangeKernelSigma	->setIsSecretAndDisabled( false );
+			_paramRangeKernelSigma->setIsSecretAndDisabled( false );
 			//durand02Group->setOpen( true );
 			break;
-		case 5: break;
+		case 5: //fattal02
+			_paramAlpha->setIsSecretAndDisabled( false );
+			_paramBeta->setIsSecretAndDisabled( false );
+			_paramNoiseReduction->setIsSecretAndDisabled( false );
+		  
+		  
+		  break;
 		case 6: break;
 		case 7: break;
 		default:
@@ -177,7 +200,13 @@ void ToneMappingPlugin::changedParam( const OFX::InstanceChangedArgs& args, cons
 					_paramSpatialKernelSigma->setValue( 2.0 );
 					_paramRangeKernelSigma->setValue( 2.0 );
 					break;/**/
-				case 5: break;
+				case 5: // fattal02
+					_paramAlpha->setValue( 1.0 );
+					_paramBeta->setValue( 0.9);
+					_paramNoiseReduction->setValue( 0.0 );
+				  
+				  break;
+				  
 				case 6: break;
 				case 7: break;
 				default: 

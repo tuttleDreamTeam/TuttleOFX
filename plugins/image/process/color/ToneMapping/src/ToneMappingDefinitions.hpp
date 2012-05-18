@@ -15,6 +15,8 @@ static const std::string kParampattanaik00Group = "pattanaik00Group";
 static const std::string kParamreinhard05Group = "reinhard05group";
 static const std::string kParamreinhard02Group = "reinhard02group";
 static const std::string kParamdurand02Group = "durand02Group";
+static const std::string kParamfattal02Group = "fattal02Group";
+
 /**/
 const std::string kParamDefault              = "reset parameters with default values";
 
@@ -24,7 +26,7 @@ const std::string kParamToneOperator_reinhard05    = "Reinhard05";
 const std::string kParamToneOperator_reinhard02    = "Reinhard02";
 const std::string kParamToneOperator_durand02   = "Durand02";
 const std::string kParamToneOperator_ashikhmin  = "Ashikhmin";
-const std::string kParamToneOperator_fattal  = "Fattal";
+const std::string kParamToneOperator_fattal02  = "Fattal02";
 const std::string kParamToneOperator_mantiuk   = "Mantiuk";
 
 enum EParamToneOperator
@@ -35,12 +37,13 @@ enum EParamToneOperator
 	eParamToneOperator_reinhard02,
 	eParamToneOperator_durand02,
 	eParamToneOperator_ashikhmin,
-	eParamToneOperator_fattal,
+	eParamToneOperator_fattal02,
 	eParamToneOperator_mantiuk,
 };
 
 //drago03
 static const std::string kBias	= "Bias";
+
 //pattanaik00
 static const std::string kMult	= "Multiplier";
 static const std::string kRod	= "Rod";
@@ -63,6 +66,10 @@ static const std::string kBaseContrast	= "BaseContrast";
 static const std::string kSpatialKernelSigma	= "SpatialKernelSigma";
 static const std::string kRangeKernelSigma	= "RangeKernelSigma";
 
+//fattal02
+static const std::string kAlpha	= "Alpha";
+static const std::string kBeta	= "Beta";
+static const std::string kNoiseReduction	= "NoiseReduction";
 
 }
 }
