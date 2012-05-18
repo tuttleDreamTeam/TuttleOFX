@@ -40,6 +40,7 @@ struct ToneMappingProcessParams
 //fattal02
 	double            _Alpha;
 	double            _Beta;
+	double            _ColorSaturation;
 	double            _NoiseReduction;
 	
   
@@ -107,6 +108,7 @@ public:
 //fattal02
 	OFX::DoubleParam*       _paramAlpha;
 	OFX::DoubleParam*       _paramBeta;
+	OFX::DoubleParam*       _paramColorSaturation;
 	OFX::DoubleParam*       _paramNoiseReduction;
 };
 

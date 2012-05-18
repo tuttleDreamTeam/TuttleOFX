@@ -232,6 +232,16 @@ void ToneMappingPluginFactory::describeInContext( OFX::ImageEffectDescriptor& de
 	beta->setDisplayRange			( 0.1, 2.0 );
 	beta->setHint				( "Adjust the Beta." );
 	beta->setParent( fattal02Group );
+	
+	
+	OFX::DoubleParamDescriptor* colorSaturation = desc.defineDoubleParam( kColorSaturation );
+	colorSaturation->setLabel		( "Color Saturation" );
+	colorSaturation->setDefault		( 0.8 );
+	colorSaturation->setRange		( 0.0, std::numeric_limits<double>::max() );
+	colorSaturation->setDisplayRange		( 0.0, 1.0 );
+	colorSaturation->setHint			( "Adjust the Color Saturation." );
+	colorSaturation->setParent( fattal02Group );	
+	
 
 	OFX::DoubleParamDescriptor* noiseReduction = desc.defineDoubleParam( kNoiseReduction );
 	noiseReduction->setLabel		( "Noise Reduction" );

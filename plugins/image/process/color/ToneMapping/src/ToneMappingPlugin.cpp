@@ -49,6 +49,7 @@ ToneMappingPlugin::ToneMappingPlugin( OfxImageEffectHandle handle )
 //fattal02
 	_paramAlpha        = fetchDoubleParam( kAlpha   );
 	_paramBeta  = fetchDoubleParam( kBeta   );
+	_paramColorSaturation  = fetchDoubleParam( kColorSaturation  );
 	_paramNoiseReduction  = fetchDoubleParam( kNoiseReduction  );
 	
 	
@@ -88,6 +89,7 @@ ToneMappingProcessParams<ToneMappingPlugin::Scalar> ToneMappingPlugin::getProces
 //fattal2
 	params._Alpha  	        	= _paramAlpha  			->getValue();
 	params._Beta   			= _paramBeta     		->getValue();
+	params._ColorSaturation 	= _paramColorSaturation       	->getValue();
 	params._NoiseReduction  	= _paramNoiseReduction       	->getValue();
 
 
@@ -117,6 +119,7 @@ void ToneMappingPlugin::updateParameters()
 	
 	_paramAlpha	  	->setIsSecretAndDisabled( true );
 	_paramBeta 		->setIsSecretAndDisabled( true );
+	_paramColorSaturation	->setIsSecretAndDisabled( true );
 	_paramNoiseReduction	->setIsSecretAndDisabled( true );
 
 //OFX Groups
@@ -157,6 +160,7 @@ void ToneMappingPlugin::updateParameters()
 		case 5: //fattal02
 			_paramAlpha->setIsSecretAndDisabled( false );
 			_paramBeta->setIsSecretAndDisabled( false );
+			_paramColorSaturation->setIsSecretAndDisabled( false );
 			_paramNoiseReduction->setIsSecretAndDisabled( false );
 		  
 		  
@@ -203,6 +207,7 @@ void ToneMappingPlugin::changedParam( const OFX::InstanceChangedArgs& args, cons
 				case 5: // fattal02
 					_paramAlpha->setValue( 1.0 );
 					_paramBeta->setValue( 0.9);
+					_paramColorSaturation->setValue( 0.8 );
 					_paramNoiseReduction->setValue( 0.0 );
 				  
 				  break;

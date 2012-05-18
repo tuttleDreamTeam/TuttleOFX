@@ -69,6 +69,7 @@ static const std::string kRangeKernelSigma	= "RangeKernelSigma";
 //fattal02
 static const std::string kAlpha	= "Alpha";
 static const std::string kBeta	= "Beta";
+static const std::string kColorSaturation	= "ColorSaturation";
 static const std::string kNoiseReduction	= "NoiseReduction";
 
 }

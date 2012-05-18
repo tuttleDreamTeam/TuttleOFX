@@ -164,7 +164,7 @@ void tmo_durand02(unsigned int width, unsigned int height,
   delete B;
   delete G;
   delete R;
-/**/
+
   progress_cb( 100 );
 
 }

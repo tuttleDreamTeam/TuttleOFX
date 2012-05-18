@@ -267,20 +267,20 @@ void ToneMappingProcess<rgba32f_view_t>::multiThreadProcessImages( const OfxRect
 		//tmo_durand02(w, h, XPtr, YPtr, ZPtr, _params._SpatialKernelSigma, _params._RangeKernelSigma, _params._BaseContrast, 1);
 		  break;
 		case 5: 
-		     TUTTLE_COUT("Fat");	
+		   	
 		  tmo_fattal02(w, h,  YPtr, LPtr , _params._Alpha, _params._Beta, _params._NoiseReduction);
-		  TUTTLE_COUT("ta");	
+		  	
 		   for (unsigned int i=0 ; i<w*h ; i++ )
 		  { 
 			  //float scale = LPtr[i] / YPtr[i] ;
 			  //(*X)(x,y) = powf( (*X)(x,y)/(*Y)(x,y), opt_saturation ) * (*L)(x,y);
 			  //(*Z)(x,y) = powf( (*Z)(x,y)/(*Y)(x,y), opt_saturation ) * (*L)(x,y);
 			  //(*Y)(x,y) = (*L)(x,y);
-			  XPtr[i]= powf( XPtr[i]/YPtr[i], .8f ) * LPtr[i];
+			  XPtr[i]= powf( XPtr[i]/YPtr[i], _params._ColorSaturation ) * LPtr[i];
 			  ZPtr[i]= powf( ZPtr[i]/YPtr[i], .8f ) * LPtr[i];
 			  YPtr[i]= LPtr[i]  ;
 		  }	// Rescaling of the 3 components with the new luminance values
-		    TUTTLE_COUT("l Bazooka");
+		
 		  boost::gil::transform_pixels ( xyzView, srcWorkV, convertXYZToRgb<rgb32f_pixel_t, rgb32f_pixel_t>() ); // Back 2 RGB
 		  copy_and_convert_pixels( srcWorkV, dst ); 	
 		  
