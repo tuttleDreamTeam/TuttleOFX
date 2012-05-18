@@ -1,0 +1,14 @@
+resources.o: resources.cpp /usr/include/QtCore/qglobal.h \
+ /usr/lib/gcc/x86_64-redhat-linux/4.6.1/include/stddef.h \
+ /usr/include/QtCore/qconfig.h /usr/include/QtCore/qconfig-x86_64.h \
+ /usr/include/QtCore/qfeatures.h
+
+/usr/include/QtCore/qglobal.h:
+
+/usr/lib/gcc/x86_64-redhat-linux/4.6.1/include/stddef.h:
+
+/usr/include/QtCore/qconfig.h:
+
+/usr/include/QtCore/qconfig-x86_64.h:
+
+/usr/include/QtCore/qfeatures.h:

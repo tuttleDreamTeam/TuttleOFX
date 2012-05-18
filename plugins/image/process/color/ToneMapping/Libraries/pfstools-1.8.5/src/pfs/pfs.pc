@@ -1,0 +1,11 @@
+prefix=/usr/local
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+Name: PFS
+Description: PFS graphic file reading and writting
+Requires:
+Version: 1.8.5
+Libs: -L${libdir} -lpfs-1.2
+Cflags: -I${includedir}/pfs-1.2

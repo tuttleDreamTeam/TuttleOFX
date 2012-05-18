@@ -1,0 +1,31 @@
+
+* pattanaik00
+  check local adaptation
+
+* durand02
+  errors in fourier transformation (very rare but happens)
+  downsampling and uncertainity fix
+
+* reinhard02
+  more informative manual
+  not much visible difference between with and without scales
+   (possible bug?)
+  license issue with reinhard02 - change the code, code from heiland-allen
+
+* set luminance tag to appropriate value
+* add package version for help string
+* bugs and comments to pfstools group
+
+
+to check for each algorithm
+-----------------------------
+Makefile
+Source code
+License
+Manual
+Set of options
+help and verbose
+paper reference
+equations
+Try out if still works
+memory leaks (valgrind)

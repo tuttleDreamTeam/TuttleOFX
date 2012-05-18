@@ -19,6 +19,7 @@
 #include <boost/static_assert.hpp>
 
 #include <tmo_drago03.h>
+#include <tmo_pattanaik00.h>
 #include <tmo_reinhard05.h>
 #include <tmo_reinhard02.h>
 #include <tmo_durand02.h>
@@ -178,16 +179,18 @@ void ToneMappingProcess<rgba32f_view_t>::multiThreadProcessImages( const OfxRect
         float* B  = reinterpret_cast<float*>( planar_view_get_raw_data ( srcWorkV, 2 ) );
 //Creation of the RGB pointers and new luminance L pointer
 	float* XPtr  = reinterpret_cast<float*>( planar_view_get_raw_data ( xyzView, 0 ) );
-	float* YPtr  = reinterpret_cast<float*>( planar_view_get_raw_data ( xyzView, 1 ) ); // @param Y [in] image luminance values
+	float* YPtr  = reinterpret_cast<float*>( planar_view_get_raw_data ( xyzView, 1 ) ); // Y [in] image luminance values
 	float* ZPtr  = reinterpret_cast<float*>( planar_view_get_raw_data ( xyzView, 2 ) );	
-	float* LPtr = new float[src.size()] ; // @param L [out] tone mapped values
+	float* LPtr = new float[src.size()] ; // L [out] tone mapped values
 
+	VisualAdaptationModel* am = new VisualAdaptationModel();
 
+	
 		switch(  _params._toneoperator )
 	{
 		case 0:
 		  //drago03
-		  float avLum, maxLum;	// @param Average luminance and maximum luminance of the source
+		  float avLum, maxLum;	// Average luminance and maximum luminance of the source
 		  calculateLuminance( w, h, YPtr, avLum, maxLum );
 
 		  tmo_drago03(w, h, YPtr, LPtr, maxLum, avLum, _params._Bias );
@@ -204,20 +207,45 @@ void ToneMappingProcess<rgba32f_view_t>::multiThreadProcessImages( const OfxRect
 		  copy_and_convert_pixels( srcWorkV, dst );	
 				  
 		  break;
-		case 1: break;
+		case 1:
+		  //pattanaik00
+
+		  if(_params._Mult!=1.0f )
+		  {//multiplyChannels
+		    float mult = _params._Mult/10 ;
+		  TUTTLE_COUT("Multiply Channels");
+		    for (unsigned int i=0 ; i<w*h ; i++ )
+		    { 
+			    XPtr[i]	*= mult  ;
+			    YPtr[i]	*= mult  ;
+			    ZPtr[i]	*= mult  ;
+		    }
+		    boost::gil::transform_pixels ( xyzView, srcWorkV, convertXYZToRgb<rgb32f_pixel_t, rgb32f_pixel_t>() );
+		   }
+		   
+		   if( !_params._processLocal )
+		    {
+		      TUTTLE_COUT("Global");		    
+		      am->setAdaptation(_params._Cone, _params._Rod);
+		    }
+		    tmo_pattanaik00( w, h, R, G, B, YPtr, am, _params._processLocal );
+		    copy_and_convert_pixels( srcWorkV, dst );
+		  
+		  break;
 		case 2:
 		  //reinhard05
 		  tmo_reinhard05(w, h, R, G, B, YPtr, _params._Brightness, _params._ChromaticAdaptation, _params._LightAdaptation);
 		  copy_and_convert_pixels( srcWorkV, dst ); 
 		  break;
+		  
 		case 3:
 		  //reinhard02
-		 /* @param use_scales true: local version, false: global version of TMO
-		  * @param key maps log average luminance to this value (default: 0.18)
-		  * @param phi sharpening parameter (defaults to 1 - no sharpening)
-		  * @param num number of scales to use in computation (default: 8)
-		  * @param low size in pixels of smallest scale (should be kept at 1)
-		  * @param high size in pixels of largest scale (default 1.6^8 = 43) */ 
+		 /* use_scales true: local version, false: global version of TMO
+		  * key maps log average luminance to this value (default: 0.18)
+		  * phi sharpening parameter (defaults to 1 - no sharpening)
+		  * num number of scales to use in computation (default: 8)
+		  * low size in pixels of smallest scale (should be kept at 1)
+		  * high size in pixels of largest scale (default 1.6^8 = 43) */ 
 		  tmo_reinhard02( w, h, YPtr, LPtr, 1, _params._key, _params._phi, 8, 1, 43, 0/*temporal_coherent*/ );
 		  
 		  		  for (unsigned int i=0 ; i<w*h ; i++ )
@@ -235,7 +263,7 @@ void ToneMappingProcess<rgba32f_view_t>::multiThreadProcessImages( const OfxRect
 		case 4:
 		//Durand02 operations 	
 		//_____NOT WORKING_____(core dumped errors)
-		//tmo_durand02(w, h, R, G, B, _params._SpatialKernelSigma, _params._RangeKernelSigma, _params._BaseContrast, downsample);
+		//tmo_durand02(w, h, XPtr, YPtr, ZPtr, _params._SpatialKernelSigma, _params._RangeKernelSigma, _params._BaseContrast, 1);
 		  break;
 		case 5: break;
 		case 6: break;
@@ -411,9 +439,6 @@ void ToneMappingProcess<boost::gil::gray8_view_t>::multiThreadProcessImages( con
 void test( const OfxRectI& procWindowRoW )
 {
 }   
-
-
-        
 
 
 

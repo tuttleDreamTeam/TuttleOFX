@@ -1,0 +1,73 @@
+.TH "pfstmo_fattal02" 1
+.SH NAME
+pfstmo_fattal02 \- Gradient domain high dynamic range compression
+.SH SYNOPSIS
+.B pfstmo_fattal02
+[--alpha <val>] [--beta <val>]
+[--saturation <val>]
+[--noise <val>]
+[--verbose] [--help]
+.SH DESCRIPTION
+This command implements a tone mapping operator as described in:
+
+Gradient Domain High Dynamic Range Compression
+R. Fattal, D. Lischinski, and M. Werman
+In ACM Transactions on Graphics, 2002.
+
+With respect to the original paper, this program provides additional parameter
+which limits the amplification of noise. The noise is often starkly amplified
+because of division by zero in one of the equations in the paper. Extension
+contributed by Przemyslaw Bazarnik.
+
+Results of this TMO can be improved by using a gamma correction.
+.SH OPTIONS
+.TP
+--alpha <val>, -a <val>
+
+Set alpha parameter. <val> defines the threshold gradient value (luminance differents of 
+adjacent pixels) below which the gradients are amplified (detail enhancement)
+and above which the gradients are attenuated (global contrast reduction).
+ Suggested range is 1 to 0.0001. It is reasonable to change
+parameters by orders of magnitude, so for instance trying 0.1, 0.01, 0.001 etc.
+(see paper for details).
+.TP
+--beta <val>, -b <val>
+
+Set beta parameter. <val> sets the strength of gradient (local contrast) modification. 
+Suggested range is 0.8 to 0.96 (see paper for details). 
+Value of 1 does not change contrasts, values above 1 reverse the effect: 
+global contrast is stretched and details are attenuated.
+Values below 0.5 lead to very strong amplification of small contrast, so
+consider using --noise parameter close to 'alpha' value to prevent noise.
+.TP
+--saturation <val>, -s <val>
+
+Amount of color saturation. Suggested range is 0.4 to 0.8. Default
+value: 0.6.
+.TP
+--noise <val>, -n <val>
+
+Reduces gradient amplification value for gradients close to 0 and reduces
+noise in the result. <val> defines gradient value (luminance differents of 
+adjacent pixels) which is treated as noise. Suggested range is 0.0 to the 
+value of alpha. Default value calculated based on alpha: 0.001*alpha.
+.TP
+--verbose
+
+Print additional information during program execution.
+.TP
+--help
+
+Print list of command line options.
+.SH EXAMPLES
+.TP
+pfsin memorial.hdr | pfstmo_fattal02 -v | pfsgamma -g 2.2 | pfsout memorial.png
+
+Tone map image and save it in png format.
+.SH "SEE ALSO"
+.BR pfsin (1)
+.BR pfsout (1)
+.BR pfsview (1)
+.SH BUGS
+Please report bugs and comments on implementation to 
+Grzegorz Krawczyk <krawczyk@mpi-sb.mpg.de>.

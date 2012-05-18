@@ -17,8 +17,9 @@ ToneMappingPlugin::ToneMappingPlugin( OfxImageEffectHandle handle )
 
 	_drago03Group = fetchGroupParam( kParamdrago03Group );
 	_pattanaik00Group = fetchGroupParam( kParampattanaik00Group );
-	_durand02Group = fetchGroupParam( kParamdurand02Group );
 	_reinhard05Group = fetchGroupParam( kParamreinhard05Group );
+	_reinhard05Group = fetchGroupParam( kParamreinhard02Group );
+	_durand02Group = fetchGroupParam( kParamdurand02Group );
 /**/
 //drago03
 	_paramBias         = fetchDoubleParam( kBias    ); 
@@ -167,7 +168,7 @@ void ToneMappingPlugin::changedParam( const OFX::InstanceChangedArgs& args, cons
 					_paramChromaticAdaptation->setValue( 0.0 );
 					_paramLightAdaptation->setValue( 0.0 );
 					break;
-				case 3:
+				case 3: //reinhard02
 					_paramKey->setValue( 0.18 );
 					_paramPhi->setValue( 1.0 );
 				  break;

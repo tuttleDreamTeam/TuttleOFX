@@ -70,7 +70,7 @@ void ToneMappingPluginFactory::describeInContext( OFX::ImageEffectDescriptor& de
 	toneoperator->appendOption( kParamToneOperator_pattanaik00 );
 	toneoperator->appendOption( kParamToneOperator_reinhard05 );
 	toneoperator->appendOption( kParamToneOperator_reinhard02 );
-	//toneoperator->appendOption( kParamToneOperator_durand02 );
+	toneoperator->appendOption( kParamToneOperator_durand02 );
 	//toneoperator->appendOption( kParamToneOperator_ashikhmin );
 	//toneoperator->appendOption( kParamToneOperator_fattal );
 	//toneoperator->appendOption( kParamToneOperator_mantiuk );

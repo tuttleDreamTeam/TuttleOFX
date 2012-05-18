@@ -1,0 +1,33 @@
+
+        float* redPtr   = reinterpret_cast<float*>( planar_view_get_raw_data ( srcWorkV, 0 ) );
+        float* greenPtr = reinterpret_cast<float*>( planar_view_get_raw_data ( srcWorkV, 1 ) );
+        float* bluePtr  = reinterpret_cast<float*>( planar_view_get_raw_data ( srcWorkV, 2 ) );
+
+
+        rgb32f_image_t xyzImg( procWindowSize.x, procWindowSize.y, alignment );
+        rgb32f_view_t  xyzView = view( xyzImg );
+        boost::gil::transform_pixels ( src, xyzView, convertRgbToXYZ<rgb32f_pixel_t, rgb32f_pixel_t>() );
+
+
+
+template < typename SrcP, typename DstP > 
+struct convertRgbToXYZ
+{
+    DstP operator() ( const SrcP& src ) {
+        DstP dst;
+        using namespace boost::gil;
+        bits32f temp_red   = channel_convert<bits32f>( get_color( src, red_t()   ));
+        bits32f temp_green = channel_convert<bits32f>( get_color( src, green_t() ));
+        bits32f temp_blue  = channel_convert<bits32f>( get_color( src, blue_t()  ));
+
+        bits32f x, y, z;
+        x = temp_red * 0.4124240f + temp_green * 0.3575790f + temp_blue * 0.1804640f;
+        y = temp_red * 0.2126560f + temp_green * 0.7151580f + temp_blue * 0.0721856f;
+        z = temp_red * 0.0193324f + temp_green * 0.1191930f + temp_blue * 0.9504440f;
+
+        get_color( dst, red_t() )	= x;
+        get_color( dst, green_t() )	= y;
+        get_color( dst, blue_t() )	= z;
+        return dst;
+    }
+};

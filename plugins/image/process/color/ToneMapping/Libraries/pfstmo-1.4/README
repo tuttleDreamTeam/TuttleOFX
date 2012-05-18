@@ -1,0 +1,105 @@
+This is a readme file for the PFS TMO package.  
+-------------------------------------------------------------------
+http://www.mpi-inf.mpg.de/resources/tmo/
+
+
+Contents
+---------
+
+1. Compilation
+2. Dependencies
+3. Documantation
+4. Contact and Links
+
+       
+1. Compilation
+-------------------------------------------------------------------
+
+1.1 To build from a 'tar' archive:
+
+> ./configure <options>
+
+for example following command will configure PFS tmo to be installed
+in user's 'local/' directory:
+
+> ./configure --prefix=$HOME/local
+
+then compile
+
+> make
+
+and install
+
+> make install
+
+NOTE: When you specify a different compiler using for example
+CXX=g++-3.2, libtool may incorrectly interpret compiler and use gcc
+instead of g++ to link the pfs library. This results in reallocation
+error in programs that link dynamically to that library. This is
+probably a bug in the libtool.
+
+NOTE: Automake 1.6 or later is required!
+        
+1.2 To build from CVS:
+
+> ./reconf
+
+or
+
+> aclocal
+> libtoolize
+> autoheader
+> automake --add-missing
+> autoreconf
+
+then proceed as in the case of the 'tar' archive distribution.
+
+2. Dependencies
+-------------------------------------------------------------------
+
+This package is implemented using floating-point pipe streaming
+implemented in pfstools library. PFStools is a free library and can be
+obtained from: http://www.mpi-sb.mpg.de/resources/pfstools/
+
+Some of the tone mapping algorithms require external libraries to be
+built. The configure script of the pfstmo may either disable
+compilation of a particular application or compile slower (simpler)
+version of the algorithm.
+
+A list of required external libraries and applications that depend on them:
+
+fftw3 libraries (http://www.fftw.org/):
+      pfstmo_durand02 (if not available, slower version will be compiled)
+
+
+3. Documentation
+-------------------------------------------------------------------
+
+Currently no documentation file is available. However each program is
+accompanied with comprehensive manual page and the source code is
+documented in 'doxygen' style.
+
+Usage examples are available on the project web page:
+http://www.mpi-sb.mpg.de/resources/tmo/
+
+PFStools library documentation is available at:
+http://www.mpi-sb.mpg.de/resources/pfstools/
+
+
+4. Contact and Links
+-------------------------------------------------------------------
+
+All comments and suggestions concerning this package or implementation
+of particular algorithm are very welcome. Please report bugs and
+comments to Grzegorz Krawczyk <gkrawczyk@users.sourceforge.net>.
+
+
+PFStmo web-page:
+http://www.mpi-inf.mpg.de/resources/tmo/
+
+PFStools library:
+http://www.mpi-inf.mpg.de/resources/pfstools/
+
+FFTW3 library:
+http://www.fftw.org/
+
