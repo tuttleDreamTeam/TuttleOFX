@@ -10,9 +10,6 @@
 //#include <boost/random/uniform_int_distribution.hpp>
 #include <boost/random/normal_distribution.hpp>
 
-
-
-
 namespace terry {
 namespace generator {
 
@@ -32,7 +29,6 @@ struct NoiseGeneratorFunctor
 	typedef reference result_type;
 	BOOST_STATIC_CONSTANT( bool, is_mutable = false );
 
-	
 	float      _sigma;
 	float	   _nu;
 	float	   _color;
@@ -42,8 +38,6 @@ struct NoiseGeneratorFunctor
 	float	   _bw_weight;
 	float	   _nb;
 	
-
-
 	NoiseGeneratorFunctor() {}
 	NoiseGeneratorFunctor(  float sigma, float nu, int color, float r_weight, float	   g_weight, float	b_weight, float bw_weight, float nb) //set maybe an enum for
 		:  _sigma(sigma), _nu(nu), _color(color), _r_weight(r_weight), _g_weight(g_weight), _b_weight(b_weight), _bw_weight(bw_weight), _nb(nb){}
@@ -52,29 +46,24 @@ struct NoiseGeneratorFunctor
 	{
                 boost::random::random_device gen;
                 boost::random::normal_distribution<> dist(_nu, _sigma);
-		//boost::random::uniform_int_distribution<> dist(0, 255);
-		/*// color gray
-                value_type color;
-		double BW, nb ,r,g,b;
+		//boost::random::uniform_int_distribution<> dist(0, 255); //other distribution there is a lot in boost random
 		
-		BW = dist(gen) * _bw_weight + nb ( 1 - _bw_weight );
-                color_convert( rgba32f_pixel_t( BW, BW, BW, 1 ), color);*/
-		
-		//color rgba
-		value_type color;
-		double nb,r,g,b;
-		
-		nb = dist(gen);
-		r = dist(gen) * _r_weight + nb * ( 1 - _bw_weight );
-		g = dist(gen) * _g_weight + nb * ( 1 - _bw_weight );
-		b = dist(gen) * _b_weight + nb * ( 1 - _bw_weight );
-
+value_type color;
+		double nb,r,g,b,BW;
+		 if (_color == 0)
+		{
+		BW = dist(gen) * _bw_weight; 
+		  color_convert( rgba32f_pixel_t( BW, BW, BW, 1 ), color);	
+		}
+		else
+		{
+		r = dist(gen) * _r_weight;
+		g = dist(gen) * _g_weight;
+		b = dist(gen) * _b_weight;
 		color_convert( rgba32f_pixel_t(r,g, b, 1 ), color);
-	
+		}
                 return color;
 	}
-
-
 };
 
 }
