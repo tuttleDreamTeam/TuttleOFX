@@ -29,8 +29,6 @@ struct NoiseGeneratorParams
 	float _g_weight;
 	float _b_weight;
 	float _bw_weight;
-	float _nb;
-
 
 typedef float Scalar;
 	
@@ -69,7 +67,6 @@ public:
 	OFX::DoubleParam*       _g_weight;
 	OFX::DoubleParam*       _b_weight;
 	OFX::DoubleParam*       _bw_weight;
-	OFX::DoubleParam*       _nb;
 
 private:
 	void updateParameters();	
