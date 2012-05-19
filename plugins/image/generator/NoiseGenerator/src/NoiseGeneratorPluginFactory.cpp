@@ -27,7 +27,6 @@ void NoiseGeneratorPluginFactory::describe( OFX::ImageEffectDescriptor& desc )
 "NoiseGenerator / generation de bruit"
 
 );
-
 	// add the supported contexts
 	desc.addSupportedContext( OFX::eContextGenerator );
 	desc.addSupportedContext( OFX::eContextGeneral );
@@ -54,75 +53,61 @@ void NoiseGeneratorPluginFactory::describeInContext( OFX::ImageEffectDescriptor&
 						   OFX::EContext               context )
 {
 	describeGeneratorParamsInContext( desc, context );
-
-	
-
-	OFX::DoubleParamDescriptor* sigma = desc.defineDoubleParam( kNoiseGeneratorSigma );
-	/*sigma->setDefault( 0.13);
-	sigma->setRange(0.00000001, 0.13); //find the max lim for a double
-	sigma->setLabel( "sigma" );
-	sigma->setHint( "Sigma value of the gaussian" );
-
-OFX::DoubleParamDescriptor* nu = desc.defineDoubleParam( kNoiseGeneratorNu );
-	nu->setDefault( 10 );
-	nu->setRange(0, 10); //find the max lim for a double
-	nu->setLabel( "nu" );
-	nu->setHint( "Nu value of the gaussian" );
-
-OFX::ChoiceParamDescriptor* color = desc.defineChoiceParam( kNoiseGeneratorColor );
-	color->setLabel( "Color" );
-	color->appendOption( kNoiseGeneratorColorGrey );
-	color->appendOption( kNoiseGeneratorColorRGB );
-	color->setDefault( 0 );
-	color->setHint( "Set the color of the noise" );*/
-
-sigma->setDefault( 0.13);
-	sigma->setRange(0.00000001, 10000); //find the max lim for a double
-	sigma->setLabel( "sigma" );
-	sigma->setHint( "Sigma value of the gaussian" );
-
-OFX::DoubleParamDescriptor* nu = desc.defineDoubleParam( kNoiseGeneratorNu );
-	nu->setDefault( 10 );
-	nu->setRange(-10000, 10000); //find the max lim for a double
-	nu->setLabel( "nu" );
-	nu->setHint( "Nu value of the gaussian" );
-
 OFX::ChoiceParamDescriptor* color = desc.defineChoiceParam( kNoiseGeneratorColor );
 	color->setLabel( "Color" );
 	color->appendOption( kNoiseGeneratorColorGrey );
 	color->appendOption( kNoiseGeneratorColorRGB );
 	color->setDefault( 0 );
 	color->setHint( "Set the color of the noise" );
+	color->setDefault(eNoiseGeneratorColorGrey);
+
+OFX::GroupParamDescriptor* color_grey = desc.defineGroupParam(  kNoiseGeneratorColorGrey );
+	color_grey->setLabel( "grey" );
+	color_grey->setOpen(true );
+
+OFX::GroupParamDescriptor* color_rgb = desc.defineGroupParam(  kNoiseGeneratorColorRGB );
+	color_rgb->setLabel( "rgb" );
+	color_rgb->setOpen(false );
+
+OFX::DoubleParamDescriptor* sigma = desc.defineDoubleParam( kNoiseGeneratorSigma );
+	sigma->setDefault( 1);
+	sigma->setRange(0.00000001, std::numeric_limits<double>::max()); 
+	sigma->setLabel( "sigma" );
+	sigma->setHint( "Sigma value of the gaussian" );
+
+OFX::DoubleParamDescriptor* nu = desc.defineDoubleParam( kNoiseGeneratorNu );
+	nu->setDefault( 0 );
+	nu->setRange(-std::numeric_limits<double>::max(), std::numeric_limits<double>::max()); 
+	nu->setLabel( "nu" );
+	nu->setHint( "Nu value of the gaussian" );
 
 OFX::DoubleParamDescriptor* r_weight = desc.defineDoubleParam( kNoiseGeneratorRweight );
 	r_weight->setDefault( 0 );
-	r_weight->setRange(0, 10); //find the max lim for a double
+	r_weight->setRange(0, std::numeric_limits<double>::max()); 
 	r_weight->setLabel( "r_weight" );
 	r_weight->setHint( "r_weight value" );
+	r_weight->setParent( color_rgb );
 
 OFX::DoubleParamDescriptor* g_weight = desc.defineDoubleParam( kNoiseGeneratorGweight );
 	g_weight->setDefault( 0 );
-	g_weight->setRange(0, 10); //find the max lim for a double
+	g_weight->setRange(0, std::numeric_limits<double>::max()); 
 	g_weight->setLabel( "g_weight" );
 	g_weight->setHint( "g_weight value" );
+	g_weight->setParent( color_rgb );
 
 OFX::DoubleParamDescriptor* b_weight = desc.defineDoubleParam( kNoiseGeneratorBweight );
 	b_weight->setDefault( 0 );
-	b_weight->setRange(0, 10); //find the max lim for a double
+	b_weight->setRange(0, std::numeric_limits<double>::max()); 
 	b_weight->setLabel( "b_weight" );
 	b_weight->setHint( "b_weight value" );
+	b_weight->setParent( color_rgb );
 
 OFX::DoubleParamDescriptor* bw_weight = desc.defineDoubleParam( kNoiseGeneratorBW );
 	bw_weight->setDefault( 0 );
-	bw_weight->setRange(0, 10); //find the max lim for a double
+	bw_weight->setRange(0, std::numeric_limits<double>::max()); 
 	bw_weight->setLabel( "bw" );
 	bw_weight->setHint( "bw value" );
-
-OFX::DoubleParamDescriptor* nb = desc.defineDoubleParam( kNoiseGeneratorNB );
-	nb->setDefault( 0 );
-	nb->setRange(0, 1); //find the max lim for a double
-	nb->setLabel( "nb" );
-	nb->setHint( "nb value" );
+	bw_weight->setParent( color_grey );
 }
 
 /**

@@ -22,10 +22,9 @@ struct NoiseGeneratorParams
 {
 	typedef typename View::value_type Pixel;
 	
-
 	float _sigma;
 	float _nu;
-	float _color;
+	float _color;	
 	float _r_weight;
 	float _g_weight;
 	float _b_weight;
@@ -48,17 +47,32 @@ public:
 	typedef boost::gil::image_view<Locator> NoiseGeneratorVirtualView;
 
 protected:
-	NoiseGeneratorPlugin&    _plugin;        ///< Rendering plugin
-	NoiseGeneratorVirtualView _srcView;       ///< Source view
+	NoiseGeneratorPlugin&    	_plugin;        ///< Rendering plugin
+	NoiseGeneratorVirtualView 	_srcView;       ///< Source view
 
 public:
 	NoiseGeneratorProcess( NoiseGeneratorPlugin& instance );
 
 	void setup( const OFX::RenderArguments& args );
-
+	void changedParam( const OFX::InstanceChangedArgs& args, const std::string& paramName );
 	NoiseGeneratorParams<View> getParams();
-
 	void multiThreadProcessImages( const OfxRectI& procWindowRoW );
+public:
+	OFX::ChoiceParam*       _color;
+
+	OFX::GroupParam* 	_color_grey;
+	OFX::GroupParam* 	_color_rgb;
+
+	OFX::DoubleParam*       _nu;
+	OFX::DoubleParam*       _sigma;
+	OFX::DoubleParam*       _r_weight;
+	OFX::DoubleParam*       _g_weight;
+	OFX::DoubleParam*       _b_weight;
+	OFX::DoubleParam*       _bw_weight;
+	OFX::DoubleParam*       _nb;
+
+private:
+	void updateParameters();	
 };
 
 }

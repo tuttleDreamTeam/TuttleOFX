@@ -4,6 +4,12 @@
 
 #include <boost/numeric/conversion/cast.hpp>
 
+#include "NoiseGeneratorPlugin.hpp"
+
+#include "NoiseGeneratorDefinitions.hpp"
+
+#include <boost/gil/gil_all.hpp>
+
 namespace tuttle {
 namespace plugin {
 namespace noisegenerator {
@@ -17,25 +23,82 @@ NoiseGeneratorProcess<View>::NoiseGeneratorProcess( NoiseGeneratorPlugin& instan
 template<class View>
 NoiseGeneratorParams<View> NoiseGeneratorProcess<View>::getParams()
 {
+	using namespace terry;
 	using namespace boost::gil;
 	NoiseGeneratorParams<View> params;
 	
+	params._color  		= static_cast<ENoiseGeneratorColor>( _plugin._color->getValue() );
 
-	//OfxRGBAColourD c1 = _plugin._color1->getValue();
-	params._sigma = _plugin._sigma->getValue();
-	params._nu = _plugin._nu->getValue();
-	params._color = 1;
-	params._r_weight = _plugin._r_weight->getValue();
-	params._g_weight = _plugin._g_weight->getValue();
-	params._b_weight = _plugin._b_weight->getValue();
-	params._bw_weight = _plugin._bw_weight->getValue();
-	params._nb = _plugin._nb->getValue();
-	//color_convert( rgba32f_pixel_t );
+	params._sigma 		= _plugin._sigma->getValue();
+	params._nu 		= _plugin._nu->getValue();
 
-	
+	params._r_weight 	= _plugin._r_weight->getValue();
+	params._g_weight 	= _plugin._g_weight->getValue();
+	params._b_weight	 = _plugin._b_weight->getValue();
+	params._bw_weight 	= _plugin._bw_weight->getValue();
+
 	
 	return params;
 }
+
+template<class View>
+ void NoiseGeneratorProcess<View>::updateParameters()
+{
+	_plugin._sigma  ->setIsSecretAndDisabled( true );
+	
+	_nu        	->setIsSecretAndDisabled( true );
+	_r_weight      	->setIsSecretAndDisabled( true );
+	_g_weight       ->setIsSecretAndDisabled( true );
+	_b_weight	->setIsSecretAndDisabled( true );
+	_bw_weight	->setIsSecretAndDisabled( true );
+	
+	switch( _plugin._color->getValue() )
+	{
+		case 0: // nb noise
+			_nu		->setIsSecretAndDisabled( false );
+			_sigma		->setIsSecretAndDisabled( false );
+			_bw_weight	->setIsSecretAndDisabled( false );
+			break;
+		case 1: // color noise
+			_nu		->setIsSecretAndDisabled( false );
+			_sigma		->setIsSecretAndDisabled( false );
+			_r_weight	->setIsSecretAndDisabled( false );
+			_g_weight	->setIsSecretAndDisabled( false );
+			_b_weight	->setIsSecretAndDisabled( false );
+			break;
+			default:
+			break;
+	}
+}
+
+template<class View>
+void NoiseGeneratorProcess<View>::changedParam( const OFX::InstanceChangedArgs& args, const std::string& paramName )
+{
+if( paramName == kParamDefault )
+	{
+		TUTTLE_COUT("pass here: default...");
+		switch( _plugin._color->getValue() )
+			{
+				case 0: // nb noise
+					_nu		->setValue( 0 );
+					_sigma		->setValue( 0 );
+					_bw_weight	->setValue( 0 );
+					break;
+				case 1: // color noise
+					_nu		->setValue( 0 );
+					_sigma		->setValue( 0);
+					_r_weight	->setValue( 0 );
+					_g_weight	->setValue( 0 );
+					_b_weight	->setValue( 0 );
+					break;
+					default:
+					break;
+			}
+		}			
+	updateParameters();
+}
+
+
 
 template<class View>
 void NoiseGeneratorProcess<View>::setup( const OFX::RenderArguments& args )
