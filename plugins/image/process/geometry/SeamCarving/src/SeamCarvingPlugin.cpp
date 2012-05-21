@@ -23,8 +23,7 @@ SeamCarvingPlugin::SeamCarvingPlugin( OfxImageEffectHandle handle )
 {
 	_mapClip        = fetchClip ( kClipMap );
 	_keepMaskClip   = fetchClip ( kClipKeepMask );
-        _keepMaskClip   = fetchClip ( kClipKeepMask );
-        _deleteMaskClip = fetchClip ( kClipDeleteMask );
+	_deleteMaskClip = fetchClip ( kClipDeleteMask );
 
 	_paramSize      = fetchInt2DParam ( kParamSize );
 	_paramShowMap   = fetchBooleanParam ( kParamMap );
@@ -45,6 +44,7 @@ SeamCarvingProcessParams<SeamCarvingPlugin::Scalar> SeamCarvingPlugin::getProces
 
 	params._showMap = _paramShowMap->getValue();
 	params._showSeamCarving = _paramShowSeamCarving->getValue();
+	
 
 	return params;
 }
@@ -150,13 +150,13 @@ void SeamCarvingPlugin::renderMapComponentBitDepth( Plugin& plugin, const OFX::R
  */
 void SeamCarvingPlugin::render( const OFX::RenderArguments &args )
 {
-    OFX::EBitDepth       bitDepth          = _clipDst->getPixelDepth();
+    OFX::EBitDepth bitDepth = _clipDst->getPixelDepth();
 
-    OFX::EPixelComponent mapComponents        = _mapClip->getPixelComponents();
+    OFX::EPixelComponent mapComponents = _mapClip->getPixelComponents();
     //OFX::EPixelComponent keepMaskComponents   = _keepMaskClip->getPixelComponents();
     //OFX::EPixelComponent deleteMaskcomponents = _deleteMaskClip->getPixelComponents();
 
-    OFX::EPixelComponent dstComponents        = _clipDst->getPixelComponents();
+    OFX::EPixelComponent dstComponents = _clipDst->getPixelComponents();
 
     switch( mapComponents )
     {

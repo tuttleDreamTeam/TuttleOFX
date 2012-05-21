@@ -19,7 +19,7 @@ static const std::string kParamSizeLabel = "Size";
 
 static const std::string kParamMap = "map";
 static const std::string kParamMapLabel = "Show map";
-
+ 
 static const std::string kParamSeamCarving = "seamcarving";
 static const std::string kParamSeamCarvingLabel = "Show SeamCarving";
 

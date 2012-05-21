@@ -11,7 +11,7 @@ void getPluginIDs( OFX::PluginFactoryArray& ids )
 {
 	mAppendPluginFactory( ids, tuttle::plugin::seamcarving::SeamCarvingPluginFactory, "tuttle.seamcarving" );
 }
-
+ 
 }
 }
 
