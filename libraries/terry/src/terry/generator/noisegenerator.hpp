@@ -46,10 +46,10 @@ struct NoiseGeneratorFunctor
 	{
                 boost::random::random_device gen;
                 boost::random::normal_distribution<> dist(_nu, _sigma);
-		//boost::random::uniform_int_distribution<> dist(0, 255); //other distribution there is a lot in boost random
+		//boost::random::uniform_int_distribution<> dist(0, 255); //other distribution there is a lot in boost random, we can maybe set a param to choose between distributions
 		
 		value_type color;
-		double nb,r,g,b,BW;
+		double r,g,b,BW;
 		 if (_color == 0)
 		{
 		BW = dist(gen) * _bw_weight; 
