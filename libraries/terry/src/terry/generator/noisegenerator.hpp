@@ -36,11 +36,11 @@ struct NoiseGeneratorFunctor
 	float	   _g_weight;
 	float	   _b_weight;
 	float	   _bw_weight;
-	float	   _nb;
+
 	
 	NoiseGeneratorFunctor() {}
-	NoiseGeneratorFunctor(  float sigma, float nu, int color, float r_weight, float	   g_weight, float	b_weight, float bw_weight, float nb) //set maybe an enum for
-		:  _sigma(sigma), _nu(nu), _color(color), _r_weight(r_weight), _g_weight(g_weight), _b_weight(b_weight), _bw_weight(bw_weight), _nb(nb){}
+	NoiseGeneratorFunctor(  float sigma, float nu, int color, float r_weight, float	   g_weight, float	b_weight, float bw_weight) //set maybe an enum for
+		:  _sigma(sigma), _nu(nu), _color(color), _r_weight(r_weight), _g_weight(g_weight), _b_weight(b_weight), _bw_weight(bw_weight){}
 
 	result_type operator()( const point_t& p ) const
 	{
@@ -48,7 +48,7 @@ struct NoiseGeneratorFunctor
                 boost::random::normal_distribution<> dist(_nu, _sigma);
 		//boost::random::uniform_int_distribution<> dist(0, 255); //other distribution there is a lot in boost random
 		
-value_type color;
+		value_type color;
 		double nb,r,g,b,BW;
 		 if (_color == 0)
 		{
