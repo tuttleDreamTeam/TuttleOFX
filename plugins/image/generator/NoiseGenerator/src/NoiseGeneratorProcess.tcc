@@ -117,7 +117,7 @@ void NoiseGeneratorProcess<View>::setup( const OFX::RenderArguments& args )
 	int yshift = boost::numeric_cast<int>( ( dims.x - dims.y ) * 0.5 );
 
 	// create a noise
-	NoiseGeneratorVirtualView noise( Point( dims.x, dims.x ), Locator( Point( 0, 0 ), Point( 1, 1 ), NoiseGeneratorFunctorT( params._sigma, params._nu, params._color, params._r_weight, params._g_weight, params._b_weight, params._bw_weight, params._nb) ) );
+	NoiseGeneratorVirtualView noise( Point( dims.x, dims.x ), Locator( Point( 0, 0 ), Point( 1, 1 ), NoiseGeneratorFunctorT( params._sigma, params._nu, params._color, params._r_weight, params._g_weight, params._b_weight, params._bw_weight) ) );
 
 
 	// create a subview depending on the image ratio
