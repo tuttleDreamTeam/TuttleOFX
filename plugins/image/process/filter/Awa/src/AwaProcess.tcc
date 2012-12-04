@@ -11,47 +11,29 @@
 namespace tuttle {
 namespace plugin {
 namespace awa {
-  
-template < typename Pixel >
-struct AwaFiltering
-{
-	Pixel operator() ( const Pixel& src );
+
+template<typename Locator>
+struct AwaFilteringFunctor {
+public:
+	explicit AwaFilteringFunctor(Locator loc)
+	: left(loc.cache_location(-1, 0)),
+	  right(loc.cache_location(1, 0)) {};
+
+	typename Locator::value_type operator()(Locator loc) {
+		typedef typename Locator::value_type pixel_type;
+		typedef typename terry::channel_type<Locator>::type channel_type;
+		pixel_type src_left  = loc[left];
+		pixel_type src_right = loc[right];
+		pixel_type dst;
+		for( int c = 0; c < terry::num_channels<Locator>::value; ++c )
+			dst[c] = (src_left[c] - src_right[c])/2;
+		return dst;
+	}
+
+private:
+	typename Locator::cached_location_t left;
+	typename Locator::cached_location_t right;
 };
-
-template < typename Pixel >
-Pixel AwaFiltering<Pixel>::operator() ( const Pixel& src )
-{
-	Pixel dst;
-	using namespace boost::gil;
-	get_color( dst, red_t() )   = get_color( src, red_t() );
-	get_color( dst, green_t() ) = get_color( src, red_t() );
-	get_color( dst, blue_t() )  = get_color( src, red_t() );
-	return src;
-}
-
-template< >
-boost::gil::gray32f_pixel_t AwaFiltering<boost::gil::gray32f_pixel_t>::operator() ( const boost::gil::gray32f_pixel_t& src ) {
-	boost::gil::gray32f_pixel_t dst;
-	using namespace boost::gil;
-	get_color( dst, gray_color_t() ) = get_color( src, gray_color_t() );
-	return src;
-}
-
-template< >
-boost::gil::gray16_pixel_t AwaFiltering<boost::gil::gray16_pixel_t>::operator() ( const boost::gil::gray16_pixel_t& src ) {
-	boost::gil::gray16_pixel_t dst;
-	using namespace boost::gil;
-	get_color( dst, gray_color_t() ) = get_color( src, gray_color_t() );
-	return src;
-}
-
-template< >
-boost::gil::gray8_pixel_t AwaFiltering<boost::gil::gray8_pixel_t>::operator() ( const boost::gil::gray8_pixel_t& src ) {
-	boost::gil::gray8_pixel_t dst;
-	using namespace boost::gil;
-	get_color( dst, gray_color_t() ) = get_color( src, gray_color_t() );
-	return src;
-}
 
 template<class View>
 AwaProcess<View>::AwaProcess( AwaPlugin& effect )
@@ -114,7 +96,8 @@ void AwaProcess<View>::multiThreadProcessImages( const OfxRectI& procWindowRoW )
 	
 	copy_and_convert_pixels( dstWorkV, dst );
 	*/
-	boost::gil::transform_pixels ( src, dst, AwaFiltering< typename View::value_type>() );
+	//boost::gil::transform_pixels ( src, dst, AwaFiltering< typename View::value_type>() );
+	boost::gil::transform_pixel_positions( src, dst, AwaFilteringFunctor< typename View::locator>( src.xy_at(0, 0) ) );
 	
 	//TUTTLE_COUT(_params._alpha);
 	
