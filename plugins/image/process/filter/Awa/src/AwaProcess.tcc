@@ -12,18 +12,46 @@ namespace tuttle {
 namespace plugin {
 namespace awa {
   
-template < typename Pixel > 
+template < typename Pixel >
 struct AwaFiltering
 {
-    Pixel operator() ( const Pixel& src ) {
-        Pixel dst;
-        using namespace boost::gil;
-//         get_color( dst, red_t() )	= get_color( src, red_t() );
-//         get_color( dst, green_t() )	= get_color( src, red_t() );
-//         get_color( dst, blue_t() )	= get_color( src, red_t() );
-        return src;
-    }
+	Pixel operator() ( const Pixel& src );
 };
+
+template < typename Pixel >
+Pixel AwaFiltering<Pixel>::operator() ( const Pixel& src )
+{
+	Pixel dst;
+	using namespace boost::gil;
+	get_color( dst, red_t() )   = get_color( src, red_t() );
+	get_color( dst, green_t() ) = get_color( src, red_t() );
+	get_color( dst, blue_t() )  = get_color( src, red_t() );
+	return src;
+}
+
+template< >
+boost::gil::gray32f_pixel_t AwaFiltering<boost::gil::gray32f_pixel_t>::operator() ( const boost::gil::gray32f_pixel_t& src ) {
+	boost::gil::gray32f_pixel_t dst;
+	using namespace boost::gil;
+	get_color( dst, gray_color_t() ) = get_color( src, gray_color_t() );
+	return src;
+}
+
+template< >
+boost::gil::gray16_pixel_t AwaFiltering<boost::gil::gray16_pixel_t>::operator() ( const boost::gil::gray16_pixel_t& src ) {
+	boost::gil::gray16_pixel_t dst;
+	using namespace boost::gil;
+	get_color( dst, gray_color_t() ) = get_color( src, gray_color_t() );
+	return src;
+}
+
+template< >
+boost::gil::gray8_pixel_t AwaFiltering<boost::gil::gray8_pixel_t>::operator() ( const boost::gil::gray8_pixel_t& src ) {
+	boost::gil::gray8_pixel_t dst;
+	using namespace boost::gil;
+	get_color( dst, gray_color_t() ) = get_color( src, gray_color_t() );
+	return src;
+}
 
 template<class View>
 AwaProcess<View>::AwaProcess( AwaPlugin& effect )

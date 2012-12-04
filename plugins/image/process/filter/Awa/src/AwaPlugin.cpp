@@ -28,8 +28,8 @@ AwaProcessParams<AwaPlugin::Scalar> AwaPlugin::getProcessParams( const OfxPointD
 	
 	AwaProcessParams<Scalar> params;
 	
-	params._alpha    	= _paramAlpha        	->getValue();
-	params._epsilon    	= _paramEpsilon        	->getValue();
+	params._alpha   = _paramAlpha->getValue();
+	params._epsilon = _paramEpsilon->getValue();
 	
 	params._size   = ofxToGil( _paramSize->getValue() ) * ofxToGil( renderScale  );
 	params._border = static_cast<EParamBorder>( _paramBorder->getValue() );
