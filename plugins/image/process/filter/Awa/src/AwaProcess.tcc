@@ -124,6 +124,8 @@ void AwaProcess<View>::multiThreadProcessImages( const OfxRectI& procWindowRoW )
 	
 	View dst = subimage_view( this->_dstView, procWindowOutput.x1, procWindowOutput.y1,
 	                          procWindowSize.x, procWindowSize.y );
+	
+	TUTTLE_COUT("TEMPLATE VIEW");
 }
 
 template<>
@@ -162,37 +164,6 @@ void AwaProcess<boost::gil::rgba32f_view_t>::multiThreadProcessImages( const Ofx
 	*/
 	//boost::gil::transform_pixels ( src, dst, AwaFiltering< typename View::value_type>() );
 	//boost::gil::transform_pixel_positions( src, dst, AwaFilteringFunctor< typename View::locator>( src.xy_at(0, 0) ) );
-
-	// ===================
-//       for k = 1 : canal
-// 	  
-// 	  for m = 1 : height
-// 	      for n = 1 : width
-// 
-// 		  
-// 		  K = 0 ;
-// 		  d = zeros(3,3) ; % here we will save the differences between the current pixel and his neighboors
-// 		  for i = -1 : 1
-// 		      for j = -1 : 1
-// 			  d(i+2,j+2) = input(m,n,k)-input2(m+1+i,n+1+j,k) ;
-// 			  K = K + ( 1/(1+alpha * ( max(epsilon^2,d(i+2,j+2)^2 ) ))) ;
-// 		      end
-// 		  end
-// 		  K = 1/K ;
-// 		  
-// 		  p = 0;
-// 		  for i = -1 : 1
-// 		      for j = -1 : 1
-// 			  w( i+2, j+2 ) = K / ( 1/(1+alpha * ( max(epsilon^2,d(i+2,j+2)^2 ) ))) ;
-// 			  g( i+2, j+2 ) = input2(m+1+i,n+1+j,k);
-// 			  p = p + (w( i+2, j+2 )*g( i+2, j+2 ));
-// 		      end
-// 		  end
-// 		  F(m,n,k) = p ;        
-// 	      end
-// 	  end
-//       end
-	// ===================
 	
 	float alpha = 0.5 ;
 	float epsilon = 0.01 ;
@@ -224,9 +195,9 @@ void AwaProcess<boost::gil::rgba32f_view_t>::multiThreadProcessImages( const Ofx
 		    } 
 		}
 		
-		for(int i = -1; i == 1; i++ )
+		for(int i = -1; i <= 1; i++ )
 		{
-		    for(int j = -1; j == 1; j++ )
+		    for(int j = -1; j <= 1; j++ )
 		    {
 			d[i+2][j+2][0] = get_color( src(y,x), red_t() ) - get_color( src(y+i,x+j), red_t() ) ;
 			d[i+2][j+2][1] = get_color( src(y,x), green_t() ) - get_color( src(y+i,x+j), green_t() );
@@ -245,9 +216,9 @@ void AwaProcess<boost::gil::rgba32f_view_t>::multiThreadProcessImages( const Ofx
 		p[1] = 0. ;
 		p[2] = 0. ;
 		
-		for(int i = -1; i == 1; i++ )
+		for(int i = -1; i <= 1; i++ )
 		{
-		    for(int j = -1; j == 1; j++ )
+		    for(int j = -1; j <= 1; j++ )
 		    {
 			w[i+2][j+2][0] = K[0] / ( 1 / (1+alpha * ( max( epsilon*epsilon, d[i+2][j+2][0]*d[i+2][j+2][0] ) ))) ;
 			w[i+2][j+2][1] = K[1] / ( 1 / (1+alpha * ( max( epsilon*epsilon, d[i+2][j+2][1]*d[i+2][j+2][1] ) ))) ;
@@ -262,13 +233,17 @@ void AwaProcess<boost::gil::rgba32f_view_t>::multiThreadProcessImages( const Ofx
 			p[2] = p[2] + w[i+2][j+2][2] * g[i+2][j+2][2] ;
 		    }    
 		}
+
 		
-		get_color( dst(y,x), red_t() ) =  (boost::gil::bits32f)p[0] ; 
-		get_color( dst(y,x), green_t() ) =  (boost::gil::bits32f)p[1] ; 
-		get_color( dst(y,x), blue_t() ) =  (boost::gil::bits32f)p[2] ; 
+		
+		get_color( dst(x,y), red_t() )   = get_color( src(x,y), red_t() ) ; 
+		get_color( dst(x,y), green_t() ) = get_color( src(x,y), green_t() ) ; 
+		get_color( dst(x,y), blue_t() )  = get_color( src(x,y), blue_t() ) ; 
 	   
 	    } 
-	}	
+	}
+	
+	
 }
 
 
