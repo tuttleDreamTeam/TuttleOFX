@@ -12,6 +12,11 @@ namespace tuttle {
 namespace plugin {
 namespace awa {
 
+float max(float a, float b){
+  if ( a > b ) return a ;
+  else return b ;
+}  
+  
 template<typename Locator>
 struct AwaFilteringFunctor {
 public:
@@ -42,16 +47,18 @@ public:
 		pixel_type src_c = loc[c];
 		pixel_type src_d = loc[d];
 		pixel_type src_e = loc[e];
-		pixel_type src_f = loc[f];
+		pixel_type src_f = loc[f];	
 		pixel_type src_g = loc[g];
 		pixel_type src_h = loc[h];
 		pixel_type src_i = loc[i];
 		pixel_type dst;
 		
+
 		for( int ch = 0; ch < terry::num_channels<Locator>::value; ++ch )
-			dst[ch] = ((src_a[ch] + src_b[ch] + src_c[ch] 
-				      + src_d[ch] + src_e[ch] + src_f[ch] 
-				      + src_g[ch] + src_h[ch] + src_i[ch] )/9);
+		      dst[ch] = ((src_a[ch] + src_b[ch] + src_c[ch] 
+			  + src_d[ch] + src_e[ch] + src_f[ch] 
+			  + src_g[ch] + src_h[ch] + src_i[ch] )/9);
+		  
 		return dst;
 	}
 
@@ -69,6 +76,7 @@ private:
 	typename Locator::cached_location_t g;
 	typename Locator::cached_location_t h;
 	typename Locator::cached_location_t i;
+	
 };
 
 template<class View>
@@ -116,6 +124,26 @@ void AwaProcess<View>::multiThreadProcessImages( const OfxRectI& procWindowRoW )
 	
 	View dst = subimage_view( this->_dstView, procWindowOutput.x1, procWindowOutput.y1,
 	                          procWindowSize.x, procWindowSize.y );
+}
+
+template<>
+void AwaProcess<boost::gil::rgba32f_view_t>::multiThreadProcessImages( const OfxRectI& procWindowRoW )
+{
+	using namespace terry;
+	using namespace terry::filter;
+	
+	const OfxRectI procWindowOutput = this->translateRoWToOutputClipCoordinates( procWindowRoW );
+	const OfxPointI procWindowSize  = {
+		procWindowRoW.x2 - procWindowRoW.x1,
+		procWindowRoW.y2 - procWindowRoW.y1
+	};
+	
+	boost::gil::rgba32f_view_t src = subimage_view( this->_srcView, procWindowOutput.x1, procWindowOutput.y1,
+	                          procWindowSize.x,
+	                          procWindowSize.y );
+	
+	boost::gil::rgba32f_view_t dst = subimage_view( this->_dstView, procWindowOutput.x1, procWindowOutput.y1,
+	                          procWindowSize.x, procWindowSize.y );
 
 	//const Point proc_tl( procWindowRoW.x1 - this->_srcPixelRod.x1, procWindowRoW.y1 - this->_srcPixelRod.y1 );
 	/*
@@ -133,26 +161,118 @@ void AwaProcess<View>::multiThreadProcessImages( const OfxRectI& procWindowRoW )
 	copy_and_convert_pixels( dstWorkV, dst );
 	*/
 	//boost::gil::transform_pixels ( src, dst, AwaFiltering< typename View::value_type>() );
-	boost::gil::transform_pixel_positions( src, dst, AwaFilteringFunctor< typename View::locator>( src.xy_at(0, 0) ) );
+	//boost::gil::transform_pixel_positions( src, dst, AwaFilteringFunctor< typename View::locator>( src.xy_at(0, 0) ) );
+
+	// ===================
+//       for k = 1 : canal
+// 	  
+// 	  for m = 1 : height
+// 	      for n = 1 : width
+// 
+// 		  
+// 		  K = 0 ;
+// 		  d = zeros(3,3) ; % here we will save the differences between the current pixel and his neighboors
+// 		  for i = -1 : 1
+// 		      for j = -1 : 1
+// 			  d(i+2,j+2) = input(m,n,k)-input2(m+1+i,n+1+j,k) ;
+// 			  K = K + ( 1/(1+alpha * ( max(epsilon^2,d(i+2,j+2)^2 ) ))) ;
+// 		      end
+// 		  end
+// 		  K = 1/K ;
+// 		  
+// 		  p = 0;
+// 		  for i = -1 : 1
+// 		      for j = -1 : 1
+// 			  w( i+2, j+2 ) = K / ( 1/(1+alpha * ( max(epsilon^2,d(i+2,j+2)^2 ) ))) ;
+// 			  g( i+2, j+2 ) = input2(m+1+i,n+1+j,k);
+// 			  p = p + (w( i+2, j+2 )*g( i+2, j+2 ));
+// 		      end
+// 		  end
+// 		  F(m,n,k) = p ;        
+// 	      end
+// 	  end
+//       end
+	// ===================
 	
-	//TUTTLE_COUT(_params._alpha);
+	float alpha = 0.5 ;
+	float epsilon = 0.01 ;
+	float K[3] ;
+	float p[3] ;
+	float d[3][3][3];
+	float w[3][3][3];
+	float g[3][3][3];
 	
-	/*
-	if( _params._size.x == 0 )
+	for(int y = 1; y < src.height()-1; y++ )
 	{
-		correlate_cols_auto<Pixel>( this->_srcView, _params._gilKernelY, dst, proc_tl, _params._boundary_option );
-	}
-	else if( _params._size.y == 0 )
-	{
-		correlate_rows_auto<Pixel>( this->_srcView, _params._gilKernelX, dst, proc_tl, _params._boundary_option );
-	}
-	else
-	{
-		correlate_rows_cols_auto<Pixel, OfxAllocator>(
-			this->_srcView, _params._gilKernelX, _params._gilKernelY, dst, proc_tl, _params._boundary_option );
-	}
-	*/
+	    for(int x = 1; x < src.width()-1; x++ )
+	    {
+		K[0] = 0. ;
+		K[1] = 0. ;
+		K[2] = 0. ;
+		
+
+		for(int i = 0; i < 3; i++ )
+		{
+		    for(int j = 0; j < 3; j++ )
+		    {
+			for(int k = 0; k < 3; k++ )
+			{
+			    d[i][j][k] = 0.0;
+			    w[i][j][k] = 0.0;
+			    g[i][j][k] = 0.0;
+			}
+		    } 
+		}
+		
+		for(int i = -1; i == 1; i++ )
+		{
+		    for(int j = -1; j == 1; j++ )
+		    {
+			d[i+2][j+2][0] = get_color( src(y,x), red_t() ) - get_color( src(y+i,x+j), red_t() ) ;
+			d[i+2][j+2][1] = get_color( src(y,x), green_t() ) - get_color( src(y+i,x+j), green_t() );
+			d[i+2][j+2][2] = get_color( src(y,x), blue_t() ) - get_color( src(y+i,x+j), blue_t() );
+			
+			K[0] = K[0]+ ( 1 / (1+alpha * ( max( epsilon*epsilon, d[i+2][j+2][0]*d[i+2][j+2][0] ) ))) ;
+			K[1] = K[1]+ ( 1 / (1+alpha * ( max( epsilon*epsilon, d[i+2][j+2][1]*d[i+2][j+2][1] ) ))) ;
+			K[2] = K[2]+ ( 1 / (1+alpha * ( max( epsilon*epsilon, d[i+2][j+2][2]*d[i+2][j+2][2] ) ))) ;
+		    }    
+		}
+		K[0] = 1/K[0];
+		K[1] = 1/K[1];
+		K[2] = 1/K[2];
+	
+		p[0] = 0. ;
+		p[1] = 0. ;
+		p[2] = 0. ;
+		
+		for(int i = -1; i == 1; i++ )
+		{
+		    for(int j = -1; j == 1; j++ )
+		    {
+			w[i+2][j+2][0] = K[0] / ( 1 / (1+alpha * ( max( epsilon*epsilon, d[i+2][j+2][0]*d[i+2][j+2][0] ) ))) ;
+			w[i+2][j+2][1] = K[1] / ( 1 / (1+alpha * ( max( epsilon*epsilon, d[i+2][j+2][1]*d[i+2][j+2][1] ) ))) ;
+			w[i+2][j+2][2] = K[2] / ( 1 / (1+alpha * ( max( epsilon*epsilon, d[i+2][j+2][2]*d[i+2][j+2][2] ) ))) ;
+			
+			g[i+2][j+2][0] = get_color( src(y+i,x+j), red_t() ) ;
+			g[i+2][j+2][1] = get_color( src(y+i,x+j), green_t() ) ;
+			g[i+2][j+2][2] = get_color( src(y+i,x+j), blue_t() ) ;
+			
+			p[0] = p[0] + w[i+2][j+2][0] * g[i+2][j+2][0] ;
+			p[1] = p[1] + w[i+2][j+2][1] * g[i+2][j+2][1] ;
+			p[2] = p[2] + w[i+2][j+2][2] * g[i+2][j+2][2] ;
+		    }    
+		}
+		
+		get_color( dst(y,x), red_t() ) =  (boost::gil::bits32f)p[0] ; 
+		get_color( dst(y,x), green_t() ) =  (boost::gil::bits32f)p[1] ; 
+		get_color( dst(y,x), blue_t() ) =  (boost::gil::bits32f)p[2] ; 
+	   
+	    } 
+	}	
 }
+
+
+
 
 }
 }
