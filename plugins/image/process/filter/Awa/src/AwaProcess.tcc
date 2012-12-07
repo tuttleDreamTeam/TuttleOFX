@@ -16,23 +16,59 @@ template<typename Locator>
 struct AwaFilteringFunctor {
 public:
 	explicit AwaFilteringFunctor(Locator loc)
-	: left(loc.cache_location(-1, 0)),
-	  right(loc.cache_location(1, 0)) {};
+	: //up(loc.cache_location(0,1)),
+	  //down(loc.cache_location(0,-1)){};
+	  //left(loc.cache_location(-1, 0)),
+	  //right(loc.cache_location(1, 0)),
+	  a(loc.cache_location(-1, -1)),
+	  b(loc.cache_location(-1, 0)),
+	  c(loc.cache_location(-1, 1)),
+	  d(loc.cache_location(0, -1)),
+	  e(loc.cache_location(0, 0)),
+	  f(loc.cache_location(0, 1)),
+	  g(loc.cache_location(1, -1)),
+	  h(loc.cache_location(1, 0)),
+	  i(loc.cache_location(1, 1)){};
 
 	typename Locator::value_type operator()(Locator loc) {
 		typedef typename Locator::value_type pixel_type;
 		typedef typename terry::channel_type<Locator>::type channel_type;
-		pixel_type src_left  = loc[left];
-		pixel_type src_right = loc[right];
+		//pixel_type src_left  = loc[left];
+		//pixel_type src_right = loc[right];
+		//pixel_type src_up  = loc[up];
+		//pixel_type src_down = loc[down];
+		pixel_type src_a = loc[a];
+		pixel_type src_b = loc[b];
+		pixel_type src_c = loc[c];
+		pixel_type src_d = loc[d];
+		pixel_type src_e = loc[e];
+		pixel_type src_f = loc[f];
+		pixel_type src_g = loc[g];
+		pixel_type src_h = loc[h];
+		pixel_type src_i = loc[i];
 		pixel_type dst;
-		for( int c = 0; c < terry::num_channels<Locator>::value; ++c )
-			dst[c] = (src_left[c] - src_right[c])/2;
+		
+		for( int ch = 0; ch < terry::num_channels<Locator>::value; ++ch )
+			dst[ch] = ((src_a[ch] + src_b[ch] + src_c[ch] 
+				      + src_d[ch] + src_e[ch] + src_f[ch] 
+				      + src_g[ch] + src_h[ch] + src_i[ch] )/9);
 		return dst;
 	}
 
 private:
-	typename Locator::cached_location_t left;
-	typename Locator::cached_location_t right;
+	//typename Locator::cached_location_t left;
+	//typename Locator::cached_location_t right;
+	//typename Locator::cached_location_t up;
+	//typename Locator::cached_location_t down;
+	typename Locator::cached_location_t a;
+	typename Locator::cached_location_t b;
+	typename Locator::cached_location_t c;
+	typename Locator::cached_location_t d;
+	typename Locator::cached_location_t e;
+	typename Locator::cached_location_t f;
+	typename Locator::cached_location_t g;
+	typename Locator::cached_location_t h;
+	typename Locator::cached_location_t i;
 };
 
 template<class View>
