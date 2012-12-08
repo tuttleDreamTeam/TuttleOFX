@@ -166,8 +166,8 @@ void AwaProcess<boost::gil::rgba32f_view_t>::multiThreadProcessImages( const Ofx
 	//boost::gil::transform_pixels ( src, dst, AwaFiltering< typename View::value_type>() );
 	//boost::gil::transform_pixel_positions( src, dst, AwaFilteringFunctor< typename View::locator>( src.xy_at(0, 0) ) );
 	
-	float alpha = 0.5 ;
-	float epsilon = 0.01 ;
+	float alpha = _params._alpha ;
+	float epsilon = _params._epsilon ;
 	float K[3] ;
 	float p[3] ;
 	float d[3][3][3];
