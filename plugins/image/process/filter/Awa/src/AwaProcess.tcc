@@ -16,6 +16,7 @@ float max(float a, float b){
   if ( a > b ) return a ;
   else return b ;
 }  
+
   
 template<typename Locator>
 struct AwaFilteringFunctor {
@@ -199,13 +200,13 @@ void AwaProcess<boost::gil::rgba32f_view_t>::multiThreadProcessImages( const Ofx
 		{
 		    for(int j = -1; j <= 1; j++ )
 		    {
-			d[i+2][j+2][0] = get_color( src(y,x), red_t() ) - get_color( src(y+i,x+j), red_t() ) ;
-			d[i+2][j+2][1] = get_color( src(y,x), green_t() ) - get_color( src(y+i,x+j), green_t() );
-			d[i+2][j+2][2] = get_color( src(y,x), blue_t() ) - get_color( src(y+i,x+j), blue_t() );
+			d[i+1][j+1][0] = get_color( src(x,y), red_t() ) - get_color( src(x+i,y+j), red_t() ) ;
+			d[i+1][j+1][1] = get_color( src(x,y), green_t() ) - get_color( src(x+i,y+j), green_t() );
+			d[i+1][j+1][2] = get_color( src(x,y), blue_t() ) - get_color( src(x+i,y+j), blue_t() );
 			
-			K[0] = K[0]+ ( 1 / (1+alpha * ( max( epsilon*epsilon, d[i+2][j+2][0]*d[i+2][j+2][0] ) ))) ;
-			K[1] = K[1]+ ( 1 / (1+alpha * ( max( epsilon*epsilon, d[i+2][j+2][1]*d[i+2][j+2][1] ) ))) ;
-			K[2] = K[2]+ ( 1 / (1+alpha * ( max( epsilon*epsilon, d[i+2][j+2][2]*d[i+2][j+2][2] ) ))) ;
+			K[0] = K[0]+ ( 1 / (1+alpha * ( max( epsilon*epsilon, d[i+1][j+1][0]*d[i+1][j+1][0] ) ))) ;
+			K[1] = K[1]+ ( 1 / (1+alpha * ( max( epsilon*epsilon, d[i+1][j+1][1]*d[i+1][j+1][1] ) ))) ;
+			K[2] = K[2]+ ( 1 / (1+alpha * ( max( epsilon*epsilon, d[i+1][j+1][2]*d[i+1][j+1][2] ) ))) ;
 		    }    
 		}
 		K[0] = 1/K[0];
@@ -220,30 +221,51 @@ void AwaProcess<boost::gil::rgba32f_view_t>::multiThreadProcessImages( const Ofx
 		{
 		    for(int j = -1; j <= 1; j++ )
 		    {
-			w[i+2][j+2][0] = K[0] / ( 1 / (1+alpha * ( max( epsilon*epsilon, d[i+2][j+2][0]*d[i+2][j+2][0] ) ))) ;
-			w[i+2][j+2][1] = K[1] / ( 1 / (1+alpha * ( max( epsilon*epsilon, d[i+2][j+2][1]*d[i+2][j+2][1] ) ))) ;
-			w[i+2][j+2][2] = K[2] / ( 1 / (1+alpha * ( max( epsilon*epsilon, d[i+2][j+2][2]*d[i+2][j+2][2] ) ))) ;
+		      
+			w[i+1][j+1][0] = K[0] / ( 1 / (1+alpha * ( max( epsilon*epsilon, d[i+1][j+1][0]*d[i+1][j+1][0] ) ))) ;
+			w[i+1][j+1][1] = K[1] / ( 1 / (1+alpha * ( max( epsilon*epsilon, d[i+1][j+1][1]*d[i+1][j+1][1] ) ))) ;
+			w[i+1][j+1][2] = K[2] / ( 1 / (1+alpha * ( max( epsilon*epsilon, d[i+1][j+1][2]*d[i+1][j+1][2] ) ))) ;
+				
+			g[i+1][j+1][0] = get_color( src(x+i,y+j), red_t() ) ;
+			g[i+1][j+1][1] = get_color( src(x+i,y+j), green_t() ) ;
+			g[i+1][j+1][2] = get_color( src(x+i,y+j), blue_t() ) ;
 			
-			g[i+2][j+2][0] = get_color( src(y+i,x+j), red_t() ) ;
-			g[i+2][j+2][1] = get_color( src(y+i,x+j), green_t() ) ;
-			g[i+2][j+2][2] = get_color( src(y+i,x+j), blue_t() ) ;
+			p[0] += w[i+1][j+1][0] * g[i+1][j+1][0] ;
+			p[1] += w[i+1][j+1][1] * g[i+1][j+1][1] ;
+			p[2] += w[i+1][j+1][2] * g[i+1][j+1][2] ;
 			
-			p[0] = p[0] + w[i+2][j+2][0] * g[i+2][j+2][0] ;
-			p[1] = p[1] + w[i+2][j+2][1] * g[i+2][j+2][1] ;
-			p[2] = p[2] + w[i+2][j+2][2] * g[i+2][j+2][2] ;
 		    }    
 		}
 
-		
-		
-		get_color( dst(x,y), red_t() )   = get_color( src(x,y), red_t() ) ; 
-		get_color( dst(x,y), green_t() ) = get_color( src(x,y), green_t() ) ; 
-		get_color( dst(x,y), blue_t() )  = get_color( src(x,y), blue_t() ) ; 
+		get_color( dst(x,y), red_t() )   = p[0];
+		get_color( dst(x,y), green_t() ) = p[1];
+		get_color( dst(x,y), blue_t() )  = p[2];
 	   
 	    } 
 	}
 	
+	// to replace matlab's "padarray" (temporary solution):
 	
+	for( int x = 0; x < src.width(); x++ )
+	{
+	  get_color( dst(x,0), red_t() )   = get_color( src(x,0), red_t() ) ;
+	  get_color( dst(x,0), green_t() ) = get_color( src(x,0),  green_t() ) ;
+	  get_color( dst(x,0), blue_t() )  = get_color( src(x,0), blue_t() ) ;
+	  get_color( dst(x,src.height()-1), red_t() )   = get_color( src(x,src.height()-1), red_t() ) ;
+	  get_color( dst(x,src.height()-1), green_t() ) = get_color( src(x,src.height()-1),  green_t() ) ;
+	  get_color( dst(x,src.height()-1), blue_t() )  = get_color( src(x,src.height()-1), blue_t() ) ;
+	}
+	
+	for( int y = 0; y < src.height(); y++ )
+	{
+	  get_color( dst(0,y), red_t() )   = get_color( src(0,y), red_t() ) ;
+	  get_color( dst(0,y), green_t() ) = get_color( src(0,y), green_t() ) ;
+	  get_color( dst(0,y), blue_t() )  = get_color( src(0,y), blue_t() ) ;
+	  get_color( dst(src.width(),y), red_t() )   = get_color( src(src.width(),y), red_t() ) ;
+	  get_color( dst(src.width(),y), green_t() ) = get_color( src(src.width(),y),  green_t() ) ;
+	  get_color( dst(src.width(),y), blue_t() )  = get_color( src(src.width(),y), blue_t() ) ;
+	}
+	  
 }
 
 
