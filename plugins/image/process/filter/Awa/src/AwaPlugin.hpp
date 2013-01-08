@@ -16,7 +16,9 @@ template<typename Scalar>
 struct AwaProcessParams
 {
 	double _alpha ;
-	double _epsilon ;
+	double _epsilonR ;
+	double _epsilonG ;
+	double _epsilonB ;
   
 	typedef typename terry::filter::kernel_1d<Scalar> Kernel;
 	terry::point2<double> _size;
@@ -49,7 +51,9 @@ public:
 	void render( const OFX::RenderArguments& args );
 
 public:
-	OFX::DoubleParam* _paramEpsilon;
+	OFX::DoubleParam* _paramEpsilonR;
+	OFX::DoubleParam* _paramEpsilonG;
+	OFX::DoubleParam* _paramEpsilonB;
 	OFX::DoubleParam* _paramAlpha;
   
 	OFX::Double2DParam* _paramSize;

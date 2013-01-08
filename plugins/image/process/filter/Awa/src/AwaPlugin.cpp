@@ -9,12 +9,16 @@
 namespace tuttle {
 namespace plugin {
 namespace awa {
+  
+  static const bool kSupportTiles = false;
 
 AwaPlugin::AwaPlugin( OfxImageEffectHandle handle )
 	: ImageEffectGilPlugin( handle )
 {
 	_paramAlpha   = fetchDoubleParam( kParamAlpha );
-	_paramEpsilon   = fetchDoubleParam( kParamEpsilon );
+	_paramEpsilonR   = fetchDoubleParam( kParamEpsilonR );
+	_paramEpsilonG   = fetchDoubleParam( kParamEpsilonG );
+	_paramEpsilonB   = fetchDoubleParam( kParamEpsilonB );
   
 	_paramSize   = fetchDouble2DParam( kParamSize );
 	_paramBorder = fetchChoiceParam( kParamBorder );
@@ -29,7 +33,9 @@ AwaProcessParams<AwaPlugin::Scalar> AwaPlugin::getProcessParams( const OfxPointD
 	AwaProcessParams<Scalar> params;
 	
 	params._alpha   = _paramAlpha->getValue();
-	params._epsilon = _paramEpsilon->getValue();
+	params._epsilonR = _paramEpsilonR->getValue();
+	params._epsilonG = _paramEpsilonG->getValue();
+	params._epsilonB = _paramEpsilonB->getValue();
 	
 	params._size   = ofxToGil( _paramSize->getValue() ) * ofxToGil( renderScale  );
 	params._border = static_cast<EParamBorder>( _paramBorder->getValue() );

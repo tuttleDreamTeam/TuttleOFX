@@ -8,7 +8,9 @@ namespace plugin {
 namespace awa {
 
 static const std::string kParamAlpha           = "alpha";  
-static const std::string kParamEpsilon         = "epsilon"; 
+static const std::string kParamEpsilonR         = "epsilonR";
+static const std::string kParamEpsilonG         = "epsilonG"; 
+static const std::string kParamEpsilonB         = "epsilonB"; 
   
 static const std::string kParamSize           = "size";
 static const std::string kParamBorder         = "border";

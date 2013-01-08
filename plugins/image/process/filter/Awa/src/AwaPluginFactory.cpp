@@ -10,7 +10,7 @@ namespace tuttle {
 namespace plugin {
 namespace awa {
 
-static const bool kSupportTiles = true;
+static const bool kSupportTiles = false;
 
 /**
  * @brief Function called to describe the plugin main features.
@@ -85,16 +85,30 @@ void AwaPluginFactory::describeInContext( OFX::ImageEffectDescriptor& desc,
 	alpha->setLabel			( "alpha" );
 	alpha->setDefault		( 0.5 );
 	alpha->setRange			( 0.0, std::numeric_limits<double>::max() );
-	alpha->setDisplayRange		( 0.0, 1.0 );
+	alpha->setDisplayRange		( 0.001, 10.0 );
 	alpha->setHint			( "alpha: \"penalty\" parameter that determines the sensitivity according to the weight." );
 
-	OFX::DoubleParamDescriptor* epsilon = desc.defineDoubleParam( kParamEpsilon );
-	epsilon->setLabel		( "epsilon" );
-	epsilon->setDefault		( 0.01 );
-	epsilon->setRange		( 0.0, std::numeric_limits<double>::max() );
-	epsilon->setDisplayRange	( 0.0, 1.0 );
-	epsilon->setHint		( "epsilon: noise variance." );
+	OFX::DoubleParamDescriptor* epsilonR = desc.defineDoubleParam( kParamEpsilonR );
+	epsilonR->setLabel		( "epsilon red" );
+	epsilonR->setDefault		( 0.01 );
+	epsilonR->setRange		( 0.0, std::numeric_limits<double>::max() );
+	epsilonR->setDisplayRange	( 0.0, 1.0 );
+	epsilonR->setHint		( "Noise variance in the red channel." );
 	
+	OFX::DoubleParamDescriptor* epsilonG = desc.defineDoubleParam( kParamEpsilonG );
+	epsilonG->setLabel		( "epsilon green" );
+	epsilonG->setDefault		( 0.01 );
+	epsilonG->setRange		( 0.0, std::numeric_limits<double>::max() );
+	epsilonG->setDisplayRange	( 0.0, 1.0 );
+	epsilonG->setHint		( "Noise variance in the green channel." );
+	
+	OFX::DoubleParamDescriptor* epsilonB = desc.defineDoubleParam( kParamEpsilonB );
+	epsilonB->setLabel		( "epsilon blue" );
+	epsilonB->setDefault		( 0.01 );
+	epsilonB->setRange		( 0.0, std::numeric_limits<double>::max() );
+	epsilonB->setDisplayRange	( 0.0, 1.0 );
+	epsilonB->setHint		( "Noise variance in the blue channel." );
+		
 	OFX::Double2DParamDescriptor* size = desc.defineDouble2DParam( kParamSize );
 	size->setLabel( "Size" );
 	size->setDefault( 3, 3 );
