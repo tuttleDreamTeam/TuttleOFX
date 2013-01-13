@@ -15,10 +15,6 @@ namespace tuttle {
 namespace plugin {
 namespace awa {
 
-float max(float a, float b){
-    if ( a > b ) return a ;
-    else return b ;
-}  
 /*
  template <typename SrcView, typename DstImage>
   void create_with_margin(const SrcView& src, DstImage& result) {
@@ -264,13 +260,13 @@ void AwaProcess<boost::gil::rgba32f_view_t>::multiThreadProcessImages( const Ofx
 			d[i+1][j+1][1] = get_color( src(x,y), green_t() ) - get_color( src(x+i+1,y+j+1), green_t() );
 			d[i+1][j+1][2] = get_color( src(x,y), blue_t() ) - get_color( src(x+i+1,y+j+1), blue_t() );
 			
-			K[0] = K[0]+ ( 1 / (1+alpha * ( max( epsilonR*epsilonR, d[i+1][j+1][0]*d[i+1][j+1][0] ) ))) ;
-			K[1] = K[1]+ ( 1 / (1+alpha * ( max( epsilonG*epsilonG, d[i+1][j+1][1]*d[i+1][j+1][1] ) ))) ;
-			K[2] = K[2]+ ( 1 / (1+alpha * ( max( epsilonB*epsilonB, d[i+1][j+1][2]*d[i+1][j+1][2] ) ))) ;
+			K[0] = K[0]+ ( 1 / (1+alpha * ( std::max( epsilonR*epsilonR, d[i+1][j+1][0]*d[i+1][j+1][0] ) ))) ;
+			K[1] = K[1]+ ( 1 / (1+alpha * ( std::max( epsilonG*epsilonG, d[i+1][j+1][1]*d[i+1][j+1][1] ) ))) ;
+			K[2] = K[2]+ ( 1 / (1+alpha * ( std::max( epsilonB*epsilonB, d[i+1][j+1][2]*d[i+1][j+1][2] ) ))) ;
 			
-// 			K[0] = K[0]+ ( 1 / (1+alpha * ( max( noise[0]*noise[0], d[i+1][j+1][0]*d[i+1][j+1][0] ) ))) ;
-// 			K[1] = K[1]+ ( 1 / (1+alpha * ( max( noise[1]*noise[1], d[i+1][j+1][1]*d[i+1][j+1][1] ) ))) ;
-// 			K[2] = K[2]+ ( 1 / (1+alpha * ( max( noise[2]*noise[2], d[i+1][j+1][2]*d[i+1][j+1][2] ) ))) ;
+// 			K[0] = K[0]+ ( 1 / (1+alpha * ( std::max( noise[0]*noise[0], d[i+1][j+1][0]*d[i+1][j+1][0] ) ))) ;
+// 			K[1] = K[1]+ ( 1 / (1+alpha * ( std::max( noise[1]*noise[1], d[i+1][j+1][1]*d[i+1][j+1][1] ) ))) ;
+// 			K[2] = K[2]+ ( 1 / (1+alpha * ( std::max( noise[2]*noise[2], d[i+1][j+1][2]*d[i+1][j+1][2] ) ))) ;
 		    }    
 		}
 		K[0] = 1/K[0];
@@ -286,9 +282,9 @@ void AwaProcess<boost::gil::rgba32f_view_t>::multiThreadProcessImages( const Ofx
 		    for(int j = -1; j <= 1; j++ )
 		    {
 		      
-			w[i+1][j+1][0] = K[0] / ( 1 / (1+alpha * ( max( noise[0]*noise[0], d[i+1][j+1][0]*d[i+1][j+1][0] ) ))) ;
-			w[i+1][j+1][1] = K[1] / ( 1 / (1+alpha * ( max( noise[1]*noise[1], d[i+1][j+1][1]*d[i+1][j+1][1] ) ))) ;
-			w[i+1][j+1][2] = K[2] / ( 1 / (1+alpha * ( max( noise[2]*noise[2], d[i+1][j+1][2]*d[i+1][j+1][2] ) ))) ;
+			w[i+1][j+1][0] = K[0] / ( 1 / (1+alpha * ( std::max( noise[0]*noise[0], d[i+1][j+1][0]*d[i+1][j+1][0] ) ))) ;
+			w[i+1][j+1][1] = K[1] / ( 1 / (1+alpha * ( std::max( noise[1]*noise[1], d[i+1][j+1][1]*d[i+1][j+1][1] ) ))) ;
+			w[i+1][j+1][2] = K[2] / ( 1 / (1+alpha * ( std::max( noise[2]*noise[2], d[i+1][j+1][2]*d[i+1][j+1][2] ) ))) ;
 				
 			g[i+1][j+1][0] = get_color( src(x+i+1,y+j+1), red_t() ) ;
 			g[i+1][j+1][1] = get_color( src(x+i+1,y+j+1), green_t() ) ;
