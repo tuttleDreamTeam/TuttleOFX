@@ -158,7 +158,6 @@ void AwaProcess<boost::gil::rgba32f_view_t>::multiThreadProcessImages( const Ofx
 	P p;
 	P sum   = pixel_zeros< P >();
 	P noise = pixel_zeros< P >();
-	P d;
 	P w;
 	double laplace[3][3] =
 		{
@@ -180,7 +179,7 @@ void AwaProcess<boost::gil::rgba32f_view_t>::multiThreadProcessImages( const Ofx
 				for( int j = 0; j <= 2; j++ )
 				{
 					//N += laplace[i][j] * src( x + i, y + j );
-					pixel_plus_assign_t<P, P>( )( pixel_multiplies_scalar_t<P, double>() ( src( x + i, y + j ), laplace[i][j] ), sum );
+					pixel_plus_assign_t<P, P>( )( pixel_multiplies_scalar_t<P, double>() ( src( x + i - 1, y + j - 1 ), laplace[i][j] ), sum );
 				}
 				pixel_plus_assign_t<P, P>( )( pixel_abs_t< P >()( N ), sum ); // sum += abs( N );
 			}
@@ -190,7 +189,7 @@ void AwaProcess<boost::gil::rgba32f_view_t>::multiThreadProcessImages( const Ofx
 
 		noise = pixel_multiplies_scalar_t<P, double>() ( sum, normalizeFactor );
 	}
-	//TUTTLE_COUT_VAR3( noise[0], noise[1], noise[2] );
+	TUTTLE_COUT_VAR3( noise[0], noise[1], noise[2] );
 
 	/// AWA process
 	for( int y = 1; y < src.height()-1; y++ )
@@ -201,21 +200,19 @@ void AwaProcess<boost::gil::rgba32f_view_t>::multiThreadProcessImages( const Ofx
 			p = pixel_zeros< P >();
 			w = pixel_zeros< P >();
 
-			d = src( x, y );
-
 			for( int i = 0; i <= 2; i++ )
 			{
 				for( int j = 0; j <= 2; j++ )
 				{
 					// d[i][j] = src(x,y) - src( x+i, y+j )
 					// here: d[i][j] -= src( x+i, y+j )
-					pixel_minus_assign_t<P, P>( )( src( x + i, y + j ), d );
+					P diff = pixel_minus_t< P, P, P >( )( src( x, y ), src( x + i - 1, y + j - 1 ) );
 
 					// K += 1 / ( 1+ alpha * max( epsilon^2, d^2 ) )
-					P d2 = pixel_pow_t< P, 2 >()( d );
+					P diff2 = pixel_pow_t< P, 2 >()( diff );
 
-					pixel_assign_max_t< P, P >()( epsilon2, d2 );
-					P pMax = pixel_multiplies_scalar_t< P, double >( )( d2 , alpha );
+					pixel_assign_max_t< P, P >()( epsilon2, diff2 );
+					P pMax = pixel_multiplies_scalar_t< P, double >( )( diff2 , alpha );
 					pixel_plus_assign_t< P, P >( )( ones, pMax );
 
 					// pMax = ones / pMax
@@ -229,8 +226,9 @@ void AwaProcess<boost::gil::rgba32f_view_t>::multiThreadProcessImages( const Ofx
 			{
 				for( int j = 0; j <= 2; j++ )
 				{
+					P diff = pixel_minus_t< P, P, P >( )( src( x, y ), src( x + i - 1, y + j - 1 ) );
 					P noise2 = pixel_pow_t< P, 2 >()( noise );
-					P d2 = pixel_pow_t< P, 2 >()( d );
+					P d2 = pixel_pow_t< P, 2 >()( diff );
 
 					pixel_assign_max_t< P, P >()( noise2, d2 );
 
@@ -239,12 +237,11 @@ void AwaProcess<boost::gil::rgba32f_view_t>::multiThreadProcessImages( const Ofx
 					pMax = pixel_divides_t< P, P, P >()( ones, pMax );
 
 					w = pixel_divides_t< P, P, P >()( K, pMax );
-
-					pixel_plus_assign_t<P, P>( )( pixel_multiplies_t< P, P, P >()( w, src( x + i, y + j ) ), p );
+					pixel_plus_assign_t<P, P>( )( pixel_multiplies_t< P, P, P >()( w, src( x + i - 1, y + j - 1 ) ), p );
 				}
 			}
 
-			dst( x, y ) = p;
+			pixel_assigns_t< P, P >()( p, dst( x, y ) );
 		}
 	}
 	
