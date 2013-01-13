@@ -207,20 +207,20 @@ void AwaProcess<boost::gil::rgba32f_view_t>::multiThreadProcessImages( const Ofx
 			{
 				for( int j = 0; j <= 2; j++ )
 				{
-					// d[i][j] = src(x,y) - src( x+j, y+j )
-					// here: d[i][j] -= src( x+j, y+j )
+					// d[i][j] = src(x,y) - src( x+i, y+j )
+					// here: d[i][j] -= src( x+i, y+j )
 					pixel_minus_assign_t<P, P>( )( src( x + i, y + j ), d );
 
-					// K += 1 / ( 1+ alpha * max( epsilon^2, d[i][j]^2 ) )
+					// K += 1 / ( 1+ alpha * max( epsilon^2, d^2 ) )
 					P d2 = pixel_pow_t< P, 2 >()( d );
 
 					pixel_assign_max_t< P, P >()( epsilon2, d2 );
 					P pMax = pixel_multiplies_scalar_t< P, double >( )( d2 , alpha );
 					pixel_plus_assign_t< P, P >( )( ones, pMax );
 
-					// one = one / pMax
+					// pMax = ones / pMax
 					pMax = pixel_divides_t< P, P, P >()( ones, pMax );
-					pixel_minus_assign_t< P, P >( )( pMax , K );
+					pixel_plus_assign_t< P, P >( )( pMax , K );
 				}
 			}
 			K = pixel_divides_t< P, P, P >()( ones, K );
