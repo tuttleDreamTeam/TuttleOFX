@@ -29,62 +29,40 @@ float max(float a, float b){
 template<typename Locator>
 struct AwaFilteringFunctor {
 public:
-	explicit AwaFilteringFunctor(Locator loc)
-	: //up(loc.cache_location(0,1)),
-	  //down(loc.cache_location(0,-1)){};
-	  //left(loc.cache_location(-1, 0)),
-	  //right(loc.cache_location(1, 0)),
-	  a(loc.cache_location(-1, -1)),
-	  b(loc.cache_location(-1, 0)),
-	  c(loc.cache_location(-1, 1)),
-	  d(loc.cache_location(0, -1)),
-	  e(loc.cache_location(0, 0)),
-	  f(loc.cache_location(0, 1)),
-	  g(loc.cache_location(1, -1)),
-	  h(loc.cache_location(1, 0)),
-	  i(loc.cache_location(1, 1)){};
+  
+    explicit AwaFilteringFunctor(Locator loc)
+      : center (loc.cache_location( 0, 0)),
+	left (loc.cache_location(-1, 0)),
+	right (loc.cache_location( 1, 0)),
+	bottom (loc.cache_location( 0, -1)),
+	top (loc.cache_location( 0, 1)),
+	topLeft (loc.cache_location(-1, -1)),
+	bottomLeft (loc.cache_location(-1, 1)),
+	bottomRight (loc.cache_location( 1, -1)),
+	topRight (loc.cache_location( 1, 1))
+	{
+	};
 
-	typename Locator::value_type operator()(Locator loc) {
-		typedef typename Locator::value_type pixel_type;
-		typedef typename terry::channel_type<Locator>::type channel_type;
-		//pixel_type src_left  = loc[left];
-		//pixel_type src_right = loc[right];
-		//pixel_type src_up  = loc[up];
-		//pixel_type src_down = loc[down];
-		pixel_type src_a = loc[a];
-		pixel_type src_b = loc[b];
-		pixel_type src_c = loc[c];
-		pixel_type src_d = loc[d];
-		pixel_type src_e = loc[e];
-		pixel_type src_f = loc[f];	
-		pixel_type src_g = loc[g];
-		pixel_type src_h = loc[h];
-		pixel_type src_i = loc[i];
-		pixel_type dst;
-		
+	typename Locator::value_type operator()(Locator loc)
+	{
+	    typedef typename Locator::value_type pixel_type;
+	    pixel_type dst;
 
-		for( int ch = 0; ch < terry::num_channels<Locator>::value; ++ch )
-		      dst[ch] = ((src_a[ch] + src_b[ch] + src_c[ch] 
-			  + src_d[ch] + src_e[ch] + src_f[ch] 
-			  + src_g[ch] + src_h[ch] + src_i[ch] )/9);
-		  
-		return dst;
+	    dst = ( loc[topLeft] + loc[top] + loc[topRight] + loc[left] + loc[center] + loc[right] + loc[bottomLeft] + loc[bottom] + loc[bottomRight] ) / 9.0;
+
+	    return dst;
 	}
 
 private:
-	//typename Locator::cached_location_t left;
-	//typename Locator::cached_location_t right;
-	//typename Locator::cached_location_t up;
-	//typename Locator::cached_location_t down;
-	typename Locator::cached_location_t a;
-	typename Locator::cached_location_t b;
-	typename Locator::cached_location_t c;
-	typename Locator::cached_location_t d;
-	typename Locator::cached_location_t e;
-	typename Locator::cached_location_t f;
-	typename Locator::cached_location_t g;
-	typename Locator::cached_location_t h;
-	typename Locator::cached_location_t i;
+	typename Locator::cached_location_t center;
+	typename Locator::cached_location_t left;
+	typename Locator::cached_location_t right;
+	typename Locator::cached_location_t bottom;
+	typename Locator::cached_location_t top;
+	typename Locator::cached_location_t topLeft;
+	typename Locator::cached_location_t bottomLeft;
+	typename Locator::cached_location_t bottomRight;
+	typename Locator::cached_location_t topRight;
 	
 };
 
@@ -178,9 +156,10 @@ void AwaProcess<boost::gil::rgba32f_view_t>::multiThreadProcessImages( const Ofx
 	
 	copy_and_convert_pixels( dstWorkV, dst );
 	*/
-	//boost::gil::transform_pixels ( src, dst, AwaFiltering< typename View::value_type>() );
-	//boost::gil::transform_pixel_positions( src, dst, AwaFilteringFunctor< typename View::locator>( src.xy_at(0, 0) ) );
-	
+//	boost::gil::transform_pixels ( src, dst, AwaFiltering< typename View::value_type>() );
+	//boost::gil::rgba32f_view_t::xy_locator src_loc = src.xy_at(0,0);
+	//boost::gil::transform_pixel_positions(src, dst, AwaFilteringFunctor<typename View::locator>(src.xy_at(10,10)));
+/*	
 	float alpha = _params._alpha ;
 	float epsilonR = _params._epsilonR ;
 	float epsilonG = _params._epsilonG ;
@@ -264,13 +243,22 @@ void AwaProcess<boost::gil::rgba32f_view_t>::multiThreadProcessImages( const Ofx
 			d[i+1][j+1][1] = get_color( src(x,y), green_t() ) - get_color( src(x+i+1,y+j+1), green_t() );
 			d[i+1][j+1][2] = get_color( src(x,y), blue_t() ) - get_color( src(x+i+1,y+j+1), blue_t() );
 			
-			K[0] = K[0]+ ( 1 / (1+alpha * ( max( epsilonR*epsilonR, d[i+1][j+1][0]*d[i+1][j+1][0] ) ))) ;
-			K[1] = K[1]+ ( 1 / (1+alpha * ( max( epsilonG*epsilonG, d[i+1][j+1][1]*d[i+1][j+1][1] ) ))) ;
-			K[2] = K[2]+ ( 1 / (1+alpha * ( max( epsilonB*epsilonB, d[i+1][j+1][2]*d[i+1][j+1][2] ) ))) ;
+	//		K[0] = K[0]+ ( 1 / (1+alpha * ( max( epsilonR*epsilonR, d[i+1][j+1][0]*d[i+1][j+1][0] ) ))) ;
+	//		K[1] = K[1]+ ( 1 / (1+alpha * ( max( epsilonG*epsilonG, d[i+1][j+1][1]*d[i+1][j+1][1] ) ))) ;
+	//		K[2] = K[2]+ ( 1 / (1+alpha * ( max( epsilonB*epsilonB, d[i+1][j+1][2]*d[i+1][j+1][2] ) ))) ;
 			
-// 			K[0] = K[0]+ ( 1 / (1+alpha * ( max( noise[0]*noise[0], d[i+1][j+1][0]*d[i+1][j+1][0] ) ))) ;
-// 			K[1] = K[1]+ ( 1 / (1+alpha * ( max( noise[1]*noise[1], d[i+1][j+1][1]*d[i+1][j+1][1] ) ))) ;
-// 			K[2] = K[2]+ ( 1 / (1+alpha * ( max( noise[2]*noise[2], d[i+1][j+1][2]*d[i+1][j+1][2] ) ))) ;
+			if (max( epsilonR*epsilonR, d[i+1][j+1][0]*d[i+1][j+1][0] ) == epsilonR*epsilonR)
+			{
+			  K[0] = K[0]+1;
+			}	
+			if (max( epsilonG*epsilonG, d[i+1][j+1][1]*d[i+1][j+1][1] ) == epsilonG*epsilonG)
+			{
+			  K[1] = K[1]+1;
+			}
+			if (max( epsilonB*epsilonB, d[i+1][j+1][2]*d[i+1][j+1][2] ) == epsilonB*epsilonB)
+			{
+			  K[2] = K[2]+1;
+			}
 		    }    
 		}
 		K[0] = 1/K[0];
@@ -290,6 +278,7 @@ void AwaProcess<boost::gil::rgba32f_view_t>::multiThreadProcessImages( const Ofx
 			w[i+1][j+1][1] = K[1] / ( 1 / (1+alpha * ( max( noise[1]*noise[1], d[i+1][j+1][1]*d[i+1][j+1][1] ) ))) ;
 			w[i+1][j+1][2] = K[2] / ( 1 / (1+alpha * ( max( noise[2]*noise[2], d[i+1][j+1][2]*d[i+1][j+1][2] ) ))) ;
 				
+			
 			g[i+1][j+1][0] = get_color( src(x+i+1,y+j+1), red_t() ) ;
 			g[i+1][j+1][1] = get_color( src(x+i+1,y+j+1), green_t() ) ;
 			g[i+1][j+1][2] = get_color( src(x+i+1,y+j+1), blue_t() ) ;
@@ -329,7 +318,7 @@ void AwaProcess<boost::gil::rgba32f_view_t>::multiThreadProcessImages( const Ofx
 	    get_color( src(src.width(),y), green_t() ) = get_color( src(src.width(),y),  green_t() ) ;
 	    get_color( src(src.width(),y), blue_t() )  = get_color( src(src.width(),y), blue_t() ) ;
 	}
-	
+	*/
 }
 
 
