@@ -146,19 +146,20 @@ void AwaProcess<boost::gil::rgba32f_view_t>::multiThreadProcessImages( const Ofx
 
 	typedef rgba32f_pixel_t P;
 
-	float alpha    = _params._alpha ;
-	float epsilonR = _params._epsilonR ;
-	float epsilonG = _params._epsilonG ;
-	float epsilonB = _params._epsilonB ;
-	
+	double alpha = _params._alpha;
+	P ones;
+	pixel_ones_t< P >()( ones );
+
+	P epsilon( _params._epsilonR, _params._epsilonG, _params._epsilonB, 1.0 );
+	P epsilon2 = pixel_pow_t< P, 2 >()( epsilon );
+
 	P K;
 	P N;
 	P p;
 	P sum   = pixel_zeros< P >();
 	P noise = pixel_zeros< P >();
-	float d[3][3][3];
-	float w[3][3][3];
-	float g[3][3][3];
+	P d[3][3];
+	P w[3][3];
 	double laplace[3][3] =
 		{
 			{  1.0, -2.0,  1.0 },
@@ -197,62 +198,53 @@ void AwaProcess<boost::gil::rgba32f_view_t>::multiThreadProcessImages( const Ofx
 		for(int x = 1; x < src.width()-1; x++ )
 		{
 			K = pixel_zeros< P >();
+			p = pixel_zeros< P >();
 
-			for(int i = 0; i < 3; i++ )
+			for(int i = 0; i <= 2; i++ )
 			{
-				for(int j = 0; j < 3; j++ )
+				for(int j = 0; j <= 2; j++ )
 				{
-					for(int k = 0; k < 3; k++ )
-					{
-						d[i][j][k] = 0.0;
-						w[i][j][k] = 0.0;
-						g[i][j][k] = 0.0;
-					}
+					d[i][j] = src( x, y );
+					w[i][j] = pixel_zeros< P >();
+
+					// d[i][j] = src(x,y) - src( x+j, y+j )
+					// here: d[i][j] -= src( x+j, y+j )
+					pixel_minus_assign_t<P, P>( )( src( x + i, y + j ), d[i][j] );
+
+					// K += 1 / ( 1+ alpha * max( epsilon^2, d[i][j]^2 ) )
+					P d2 = pixel_pow_t< P, 2 >()( d[i][j] );
+
+					pixel_assign_max_t< P, P >()( epsilon2, d2 );
+					P pMax = pixel_multiplies_scalar_t< P, double >( )( d2 , alpha );
+					pixel_plus_assign_t< P, P >( )( ones, pMax );
+
+					// one = one / pMax
+					pMax = pixel_divides_t< P, P, P >()( ones, pMax );
+					pixel_minus_assign_t< P, P >( )( pMax , K );
 				}
 			}
+			K = pixel_divides_t< P, P, P >()( ones, K );
 		
 			for(int i = 0; i <= 2; i++ )
 			{
 				for(int j = 0; j <= 2; j++ )
 				{
-					d[i][j][0] = get_color( src(x,y), red_t()   ) - get_color( src(x+i,y+j), red_t() ) ;
-					d[i][j][1] = get_color( src(x,y), green_t() ) - get_color( src(x+i,y+j), green_t() );
-					d[i][j][2] = get_color( src(x,y), blue_t()  ) - get_color( src(x+i,y+j), blue_t() );
+					P noise2 = pixel_pow_t< P, 2 >()( noise );
+					P d2 = pixel_pow_t< P, 2 >()( d[i][j] );
 
-					K[0] += ( 1 / (1 + alpha * ( std::max( epsilonR * epsilonR, d[i][j][0] * d[i][j][0] ) ))) ;
-					K[1] += ( 1 / (1 + alpha * ( std::max( epsilonG * epsilonG, d[i][j][1] * d[i][j][1] ) ))) ;
-					K[2] += ( 1 / (1 + alpha * ( std::max( epsilonB * epsilonB, d[i][j][2] * d[i][j][2] ) ))) ;
-				}
-			}
-			K[0] = 1/K[0];
-			K[1] = 1/K[1];
-			K[2] = 1/K[2];
+					pixel_assign_max_t< P, P >()( noise2, d2 );
 
-			p[0] = 0. ;
-			p[1] = 0. ;
-			p[2] = 0. ;
-		
-			for(int i = -1; i <= 1; i++ )
-			{
-				for(int j = -1; j <= 1; j++ )
-				{
-					w[i+1][j+1][0] = K[0] / ( 1 / (1+alpha * ( std::max( noise[0]*noise[0], d[i+1][j+1][0]*d[i+1][j+1][0] ) ))) ;
-					w[i+1][j+1][1] = K[1] / ( 1 / (1+alpha * ( std::max( noise[1]*noise[1], d[i+1][j+1][1]*d[i+1][j+1][1] ) ))) ;
-					w[i+1][j+1][2] = K[2] / ( 1 / (1+alpha * ( std::max( noise[2]*noise[2], d[i+1][j+1][2]*d[i+1][j+1][2] ) ))) ;
+					P pMax = pixel_multiplies_scalar_t< P, double >( )( d2 , alpha );
+					pixel_plus_assign_t< P, P >( )( ones, pMax );
+					pMax = pixel_divides_t< P, P, P >()( ones, pMax );
 
-					g[i+1][j+1][0] = get_color( src(x+i+1,y+j+1), red_t() ) ;
-					g[i+1][j+1][1] = get_color( src(x+i+1,y+j+1), green_t() ) ;
-					g[i+1][j+1][2] = get_color( src(x+i+1,y+j+1), blue_t() ) ;
+					w[i][j] = pixel_divides_t< P, P, P >()( K, pMax );
 
-					p[0] += w[i+1][j+1][0] * g[i+1][j+1][0] ;
-					p[1] += w[i+1][j+1][1] * g[i+1][j+1][1] ;
-					p[2] += w[i+1][j+1][2] * g[i+1][j+1][2] ;
+					pixel_plus_assign_t<P, P>( )( pixel_multiplies_t< P, P, P >()( w[i][j], src( x + i, y + j ) ), p );
 				}
 			}
 
-			get_color( dst(x,y), red_t() )   = p[0];
-			get_color( dst(x,y), green_t() ) = p[1];
-			get_color( dst(x,y), blue_t() )  = p[2];
+			dst( x, y ) = p;
 		}
 	}
 	
@@ -260,22 +252,14 @@ void AwaProcess<boost::gil::rgba32f_view_t>::multiThreadProcessImages( const Ofx
 	
 	for( int x = 0; x < src.width(); x++ )
 	{
-		get_color( src(x,0), red_t() )   = get_color( src(x,0), red_t() ) ;
-		get_color( src(x,0), green_t() ) = get_color( src(x,0),  green_t() ) ;
-		get_color( src(x,0), blue_t() )  = get_color( src(x,0), blue_t() ) ;
-		get_color( src(x,src.height()-1), red_t() )   = get_color( src(x,src.height()-1), red_t() ) ;
-		get_color( src(x,src.height()-1), green_t() ) = get_color( src(x,src.height()-1),  green_t() ) ;
-		get_color( src(x,src.height()-1), blue_t() )  = get_color( src(x,src.height()-1), blue_t() ) ;
+		dst( x, 0 ) = src( x, 0 );
+		dst( x, src.height() - 1 ) = src( x, src.height() - 1 );
 	}
 	
 	for( int y = 0; y < src.height(); y++ )
 	{
-		get_color( src(0,y), red_t() )   = get_color( src(0,y), red_t() ) ;
-		get_color( src(0,y), green_t() ) = get_color( src(0,y), green_t() ) ;
-		get_color( src(0,y), blue_t() )  = get_color( src(0,y), blue_t() ) ;
-		get_color( src(src.width(),y), red_t() )   = get_color( src(src.width(),y), red_t() ) ;
-		get_color( src(src.width(),y), green_t() ) = get_color( src(src.width(),y),  green_t() ) ;
-		get_color( src(src.width(),y), blue_t() )  = get_color( src(src.width(),y), blue_t() ) ;
+		dst( 0, y ) = src( 0, y );
+		dst( src.width() - 1, y ) = src( src.width() - 1, y );
 	}
 	
 }
