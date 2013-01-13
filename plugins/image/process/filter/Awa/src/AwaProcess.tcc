@@ -1,14 +1,21 @@
 #include "AwaPlugin.hpp"
 
+#include <terry/numeric/operations.hpp>
+#include <terry/numeric/operations_assign.hpp>
+#include <terry/numeric/assign.hpp>
+#include <terry/numeric/assign_minmax.hpp>
+#include <terry/numeric/minmax.hpp>
+#include <terry/numeric/init.hpp>
+#include <terry/numeric/pow.hpp>
+#include <terry/numeric/sqrt.hpp>
+#include <terry/numeric/abs.hpp>
 #include <terry/filter/gaussianKernel.hpp>
 #include <terry/filter/convolve.hpp>
 
 #include <tuttle/plugin/memory/OfxAllocator.hpp>
 
 #include <boost/gil/pixel.hpp>
-
-#include <math.h>
-//#define M_PI        3.14159265358979323846264338327950288   /* pi */
+#include <boost/math/constants/constants.hpp>
 
 
 namespace tuttle {
@@ -100,7 +107,8 @@ void AwaProcess<boost::gil::rgba32f_view_t>::multiThreadProcessImages( const Ofx
 {
 	using namespace terry;
 	using namespace terry::filter;
-	
+	using namespace terry::numeric;
+
 	const OfxRectI procWindowOutput = this->translateRoWToOutputClipCoordinates( procWindowRoW );
 	const OfxPointI procWindowSize  = {
 		procWindowRoW.x2 - procWindowRoW.x1,
@@ -135,21 +143,23 @@ void AwaProcess<boost::gil::rgba32f_view_t>::multiThreadProcessImages( const Ofx
 	*/
 	//boost::gil::transform_pixels ( src, dst, AwaFiltering< typename View::value_type>() );
 	//boost::gil::transform_pixel_positions( src, dst, AwaFilteringFunctor< typename View::locator>( src.xy_at(0, 0) ) );
-	
+
+	typedef rgba32f_pixel_t P;
+
 	float alpha    = _params._alpha ;
 	float epsilonR = _params._epsilonR ;
 	float epsilonG = _params._epsilonG ;
 	float epsilonB = _params._epsilonB ;
 	
-	float K[3];
-	float N[3];
-	float p[3];
-	float sum  [3] = { 0.0, 0.0, 0.0 };
-	float noise[3] = { 0.0, 0.0, 0.0 };
+	P K;
+	P N;
+	P p;
+	P sum   = pixel_zeros< P >();
+	P noise = pixel_zeros< P >();
 	float d[3][3][3];
 	float w[3][3][3];
 	float g[3][3][3];
-	float laplace[3][3] =
+	double laplace[3][3] =
 		{
 			{  1.0, -2.0,  1.0 },
 			{ -2.0,  4.0, -2.0 },
@@ -158,46 +168,35 @@ void AwaProcess<boost::gil::rgba32f_view_t>::multiThreadProcessImages( const Ofx
 	
 	
 	/// Noise estimation
-	
 	for(int y = 1; y < src.height()-1; y++ )
 	{
 		for(int x = 1; x < src.width()-1; x++ )
 		{
-			N[0] = 0.0 ;
-			N[1] = 0.0 ;
-			N[2] = 0.0 ;
+			N = pixel_zeros< P >();
 
-			for(int i = -1; i <= 1; i++ )
+			for(int i = 0; i <= 2; i++ )
 			{
-				for(int j = -1; j <= 1; j++ )
+				for(int j = 0; j <= 2; j++ )
 				{
-					N[0] = N[0] + (laplace[i+1][j+1] * get_color( src(x+i+1,y+j+1), red_t() )) ;
-					N[1] = N[1] + (laplace[i+1][j+1] * get_color( src(x+i+1,y+j+1), green_t() )) ;
-					N[2] = N[2] + (laplace[i+1][j+1] * get_color( src(x+i+1,y+j+1), blue_t() )) ;
-
+					//N += laplace[i][j] * src( x + i, y + j );
+					pixel_plus_assign_t<P, P>( )( pixel_multiplies_scalar_t<P, double>() ( src( x + i, y + j ), laplace[i][j] ), sum );
 				}
-
-				sum[0] = sum[0] + std::abs(N[0]) ;
-				sum[1] = sum[1] + std::abs(N[1]) ;
-				sum[2] = sum[2] + std::abs(N[2]) ;
+				pixel_plus_assign_t<P, P>( )( pixel_abs_t< P >()( N ), sum ); // sum += abs( N );
 			}
 		}
 
-		noise[0] = (std::sqrt(M_PI/2.0))*(1.0/(6.0*(src.width() - 2.0)*(src.height() - 2.0))) * (sum[0]) ;
-		noise[1] = (std::sqrt(M_PI/2.0))*(1.0/(6.0*(src.width() - 2.0)*(src.height() - 2.0))) * (sum[1]) ;
-		noise[2] = (std::sqrt(M_PI/2.0))*(1.0/(6.0*(src.width() - 2.0)*(src.height() - 2.0))) * (sum[2]) ;
+		double normalizeFactor = std::sqrt( boost::math::constants::pi<double>() / 2.0 ) / ( 6.0 * ( src.width() - 2.0 ) * ( src.height() - 2.0 ) );
+
+		noise = pixel_multiplies_scalar_t<P, double>() ( sum, normalizeFactor );
 	}
-// 	TUTTLE_COUT_VAR3( noise[0], noise[1], noise[2] );
+	//TUTTLE_COUT_VAR3( noise[0], noise[1], noise[2] );
 
 	/// AWA process
 	for(int y = 1; y < src.height()-1; y++ )
 	{
 		for(int x = 1; x < src.width()-1; x++ )
 		{
-			K[0] = 0. ;
-			K[1] = 0. ;
-			K[2] = 0. ;
-		
+			K = pixel_zeros< P >();
 
 			for(int i = 0; i < 3; i++ )
 			{
@@ -212,21 +211,17 @@ void AwaProcess<boost::gil::rgba32f_view_t>::multiThreadProcessImages( const Ofx
 				}
 			}
 		
-			for(int i = -1; i <= 1; i++ )
+			for(int i = 0; i <= 2; i++ )
 			{
-				for(int j = -1; j <= 1; j++ )
+				for(int j = 0; j <= 2; j++ )
 				{
-					d[i+1][j+1][0] = get_color( src(x,y), red_t() ) - get_color( src(x+i+1,y+j+1), red_t() ) ;
-					d[i+1][j+1][1] = get_color( src(x,y), green_t() ) - get_color( src(x+i+1,y+j+1), green_t() );
-					d[i+1][j+1][2] = get_color( src(x,y), blue_t() ) - get_color( src(x+i+1,y+j+1), blue_t() );
+					d[i][j][0] = get_color( src(x,y), red_t()   ) - get_color( src(x+i,y+j), red_t() ) ;
+					d[i][j][1] = get_color( src(x,y), green_t() ) - get_color( src(x+i,y+j), green_t() );
+					d[i][j][2] = get_color( src(x,y), blue_t()  ) - get_color( src(x+i,y+j), blue_t() );
 
-					K[0] = K[0]+ ( 1 / (1+alpha * ( std::max( epsilonR*epsilonR, d[i+1][j+1][0]*d[i+1][j+1][0] ) ))) ;
-					K[1] = K[1]+ ( 1 / (1+alpha * ( std::max( epsilonG*epsilonG, d[i+1][j+1][1]*d[i+1][j+1][1] ) ))) ;
-					K[2] = K[2]+ ( 1 / (1+alpha * ( std::max( epsilonB*epsilonB, d[i+1][j+1][2]*d[i+1][j+1][2] ) ))) ;
-
-					//K[0] = K[0]+ ( 1 / (1+alpha * ( std::max( noise[0]*noise[0], d[i+1][j+1][0]*d[i+1][j+1][0] ) ))) ;
-					//K[1] = K[1]+ ( 1 / (1+alpha * ( std::max( noise[1]*noise[1], d[i+1][j+1][1]*d[i+1][j+1][1] ) ))) ;
-					//K[2] = K[2]+ ( 1 / (1+alpha * ( std::max( noise[2]*noise[2], d[i+1][j+1][2]*d[i+1][j+1][2] ) ))) ;
+					K[0] += ( 1 / (1 + alpha * ( std::max( epsilonR * epsilonR, d[i][j][0] * d[i][j][0] ) ))) ;
+					K[1] += ( 1 / (1 + alpha * ( std::max( epsilonG * epsilonG, d[i][j][1] * d[i][j][1] ) ))) ;
+					K[2] += ( 1 / (1 + alpha * ( std::max( epsilonB * epsilonB, d[i][j][2] * d[i][j][2] ) ))) ;
 				}
 			}
 			K[0] = 1/K[0];
