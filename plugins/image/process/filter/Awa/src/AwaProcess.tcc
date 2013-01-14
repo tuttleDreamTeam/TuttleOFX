@@ -184,18 +184,16 @@ void AwaProcess<boost::gil::rgba32f_view_t>::multiThreadProcessImages( const Ofx
 		
 	// AWA process
 	
-	P diff ; // variable d
-	P diff2 ; // variable d²
-	P w ;
-	P g ;
+	P diff ; // difference between current pixel and pixel of the support (neighbors)
+	P diff2 ; // diff²
+	P weight ;	// Weight of the neighbors pixels
 	
 	for(int y = 1; y < src.height()-1; y++ )
 	{
 	    for(int x = 1; x < src.width()-1; x++ )
 	    {
 		K = pixel_zeros< P >();		
-		w = pixel_zeros< P >();
-		g = pixel_zeros< P >();
+		weight = pixel_zeros< P >();
 		
 		for(int i = 0; i <= 2; i++ )
 		{
@@ -227,21 +225,21 @@ void AwaProcess<boost::gil::rgba32f_view_t>::multiThreadProcessImages( const Ofx
 		{
 		    for(int j = 0; j <= 2; j++ )
 		    {
-// 			w = K / ( 1 / (1+alpha * ( max( noise², diff² ) ))) ;
-			P diff = pixel_minus_t< P, P, P >( )( src( x, y ), src( x + i - 1, y + j - 1 ) );	
-			P d2 = pixel_pow_t< P, 2 >()( diff );
+// 			weight = K / ( 1 / (1+alpha * ( max( noise², diff² ) ))) ;
+			diff = pixel_minus_t< P, P, P >( )( src( x, y ), src( x + i - 1, y + j - 1 ) );	
+			diff2 = pixel_pow_t< P, 2 >()( diff );
 
-			pixel_assign_max_t< P, P >()( epsilon2, d2 );
+			pixel_assign_max_t< P, P >()( epsilon2, diff2 );
 // 			pixel_assign_max_t< P, P >()( noise2, d2 );
 
-			P pMax = pixel_multiplies_scalar_t< P, double >( )( d2 , alpha );
+			P pMax = pixel_multiplies_scalar_t< P, double >( )( diff2 , alpha );
 			pixel_plus_assign_t< P, P >( )( ones, pMax );
 			pMax = pixel_divides_t< P, P, P >()( ones, pMax );
 
-			w = pixel_divides_t< P, P, P >()( K, pMax );					
+			weight = pixel_divides_t< P, P, P >()( K, pMax );					
 
 			//p += w * src(x+i-1,y+j-1) ;
-			pixel_plus_assign_t<P, P>( )( pixel_multiplies_t< P, P, P >()( w, src( x + i - 1, y + j - 1 ) ), p );	
+			pixel_plus_assign_t<P, P>( )( pixel_multiplies_t< P, P, P >()( weight, src( x + i - 1, y + j - 1 ) ), p );	
 		    }    
 		}
 
