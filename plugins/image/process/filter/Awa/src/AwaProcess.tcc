@@ -23,10 +23,7 @@ namespace tuttle {
 namespace plugin {
 namespace awa {
 
-float max(float a, float b){
-    if ( a > b ) return a ;
-    else return b ;
-}  
+
 /*
  template <typename SrcView, typename DstImage>
   void create_with_margin(const SrcView& src, DstImage& result) {
@@ -157,7 +154,7 @@ void AwaProcess<boost::gil::rgba32f_view_t>::multiThreadProcessImages( const Ofx
 //	boost::gil::transform_pixels ( src, dst, AwaFiltering< typename View::value_type>() );
 	//boost::gil::rgba32f_view_t::xy_locator src_loc = src.xy_at(0,0);
 	//boost::gil::transform_pixel_positions(src, dst, AwaFilteringFunctor<typename View::locator>(src.xy_at(10,10)));
-/*	
+	
 	float alpha = _params._alpha ;
 	float epsilonR = _params._epsilonR ;
 	float epsilonG = _params._epsilonG ;
@@ -241,9 +238,9 @@ void AwaProcess<boost::gil::rgba32f_view_t>::multiThreadProcessImages( const Ofx
 			d[i+1][j+1][1] = get_color( src(x,y), green_t() ) - get_color( src(x+i+1,y+j+1), green_t() );
 			d[i+1][j+1][2] = get_color( src(x,y), blue_t() ) - get_color( src(x+i+1,y+j+1), blue_t() );
 			
-			K[0] = K[0]+ ( 1 / (1+alpha * ( max( epsilonR*epsilonR, d[i+1][j+1][0]*d[i+1][j+1][0] ) ))) ;
-			K[1] = K[1]+ ( 1 / (1+alpha * ( max( epsilonG*epsilonG, d[i+1][j+1][1]*d[i+1][j+1][1] ) ))) ;
-			K[2] = K[2]+ ( 1 / (1+alpha * ( max( epsilonB*epsilonB, d[i+1][j+1][2]*d[i+1][j+1][2] ) ))) ;
+			K[0] = K[0]+ ( 1 / (1+alpha * ( std::max( epsilonR*epsilonR, d[i+1][j+1][0]*d[i+1][j+1][0] ) ))) ;
+			K[1] = K[1]+ ( 1 / (1+alpha * ( std::max( epsilonG*epsilonG, d[i+1][j+1][1]*d[i+1][j+1][1] ) ))) ;
+			K[2] = K[2]+ ( 1 / (1+alpha * ( std::max( epsilonB*epsilonB, d[i+1][j+1][2]*d[i+1][j+1][2] ) ))) ;
 			
 			
 		    }    
@@ -261,9 +258,9 @@ void AwaProcess<boost::gil::rgba32f_view_t>::multiThreadProcessImages( const Ofx
 		    for(int j = -1; j <= 1; j++ )
 		    {
 		      
-			w[i+1][j+1][0] = K[0] / ( 1 / (1+alpha * ( max( noise[0]*noise[0], d[i+1][j+1][0]*d[i+1][j+1][0] ) ))) ;
-			w[i+1][j+1][1] = K[1] / ( 1 / (1+alpha * ( max( noise[1]*noise[1], d[i+1][j+1][1]*d[i+1][j+1][1] ) ))) ;
-			w[i+1][j+1][2] = K[2] / ( 1 / (1+alpha * ( max( noise[2]*noise[2], d[i+1][j+1][2]*d[i+1][j+1][2] ) ))) ;
+			w[i+1][j+1][0] = K[0] / ( 1 / (1+alpha * ( std::max( noise[0]*noise[0], d[i+1][j+1][0]*d[i+1][j+1][0] ) ))) ;
+			w[i+1][j+1][1] = K[1] / ( 1 / (1+alpha * ( std::max( noise[1]*noise[1], d[i+1][j+1][1]*d[i+1][j+1][1] ) ))) ;
+			w[i+1][j+1][2] = K[2] / ( 1 / (1+alpha * ( std::max( noise[2]*noise[2], d[i+1][j+1][2]*d[i+1][j+1][2] ) ))) ;
 				
 			
 			g[i+1][j+1][0] = get_color( src(x+i+1,y+j+1), red_t() ) ;
@@ -305,7 +302,7 @@ void AwaProcess<boost::gil::rgba32f_view_t>::multiThreadProcessImages( const Ofx
 	    get_color( src(src.width(),y), green_t() ) = get_color( src(src.width(),y),  green_t() ) ;
 	    get_color( src(src.width(),y), blue_t() )  = get_color( src(src.width(),y), blue_t() ) ;
 	}
-	*/
+	
 }
 
 
