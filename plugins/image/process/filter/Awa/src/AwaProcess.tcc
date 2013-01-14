@@ -142,16 +142,15 @@ void AwaProcess<boost::gil::rgba32f_view_t>::multiThreadProcessImages( const Ofx
 	P epsilon( _params._epsilonR, _params._epsilonG, _params._epsilonB, 1.0 );
 	P epsilon2 = pixel_pow_t< P, 2 >()( epsilon ); // epsilon²
 	
-	P K ;
-	P N ;
-	P p ;
-	P sum   = pixel_zeros< P >();
+	P K ; // Normalization constant
+	P p ; // Output/Denoised pixel
+	P laplacian ;
+	P sum   = pixel_zeros< P >(); // laplacian
+ 	P noise = pixel_zeros< P >();	// noise estimation
 	
- 	P noise = pixel_zeros< P >();
-	
-	double laplace[3][3] = {{1.0, -2.0, 1.0},
-				{-2.0, 4.0, -2.0},
-				{1.0, -2.0, 1.0}};
+	double laplace_mask[3][3] = {{1.0, -2.0, 1.0},
+				      {-2.0, 4.0, -2.0},
+				      {1.0, -2.0, 1.0}};
 	
 	// Noise estimation
 	
@@ -159,24 +158,24 @@ void AwaProcess<boost::gil::rgba32f_view_t>::multiThreadProcessImages( const Ofx
 	{
 	    for(int x = 1; x < src.width()-1; x++ )
 	    {
-		N = pixel_zeros< P >();
+		laplacian = pixel_zeros< P >();
 
 		for(int i = 0; i <= 2; i++ )
 		{
 		    for(int j = 0; j <= 2; j++ )
 		    {      
-		      //N += laplace[i][j] * src( x + i, y + j ); 
-		      pixel_plus_assign_t<P, P>( )( pixel_multiplies_scalar_t<P, double>() ( src( x + i, y + j ), laplace[i][j] ), N );
-			
+		      //laplacian += laplace_mask[i][j] * src( x + i, y + j ); 
+		      pixel_plus_assign_t<P, P>( )( pixel_multiplies_scalar_t<P, double>() ( src( x + i -1, y + j -1 ), laplace_mask[i-1][j-1] ), laplacian );		
 		    }
-		    pixel_plus_assign_t<P, P>( )( pixel_abs_t< P >()( N ), sum ); // sum += abs( N );
- 		}
+ 		} 		
+ 		pixel_plus_assign_t<P, P>( )( pixel_abs_t< P >()( laplacian ), sum ); // sum += abs( laplacian );
 	    }
-	    //noise = (sqrt(pi/2.0))*(1.0/(6.0*(src.width() - 2.0)*(src.height() - 2.0))) * sum ;	 
-	    double normalizeFactor = std::sqrt( boost::math::constants::pi<double>() / 2.0 ) / ( 6.0 * ( src.width() - 2.0 ) * ( src.height() - 2.0 ) );
-	    
-	    noise = pixel_multiplies_scalar_t<P, double>() ( sum, normalizeFactor );
 	}
+	
+	//noise = (sqrt(pi/2.0))*(1.0/(6.0*(src.width() - 2.0)*(src.height() - 2.0))) * sum ;	 
+	double normalizeFactor = std::sqrt( boost::math::constants::pi<double>() / 2.0 ) / ( 6.0 * ( src.width() - 2.0 ) * ( src.height() - 2.0 ) ); 
+	
+	noise = pixel_multiplies_scalar_t<P, double>() ( sum, normalizeFactor );
 	
 	P noise2 = pixel_pow_t< P, 2 >()( noise );	//noise²
 	
