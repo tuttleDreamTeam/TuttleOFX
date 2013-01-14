@@ -72,6 +72,12 @@ AwaProcessParams<AwaPlugin::Scalar> AwaPlugin::getProcessParams( const OfxPointD
 
    void AwaPlugin::changedParam( const OFX::InstanceChangedArgs &args, const std::string &paramName )
    {
+      if( paramName == kParamNoiseEstimation )
+      {
+	_paramEpsilonR        ->setIsSecretAndDisabled( _paramNoiseEstimation->getValue() );
+	_paramEpsilonG        ->setIsSecretAndDisabled( _paramNoiseEstimation->getValue() );
+	_paramEpsilonB        ->setIsSecretAndDisabled( _paramNoiseEstimation->getValue() );
+      }
 //     if( paramName == kHelpButton )
 //     {
 //         sendMessage( OFX::Message::eMessageMessage,
