@@ -1,14 +1,22 @@
-#include "AwaPlugin.hpp"
-
+#include <terry/numeric/operations.hpp>
+#include <terry/numeric/operations_assign.hpp>
+#include <terry/numeric/assign.hpp>
+#include <terry/numeric/assign_minmax.hpp>
+#include <terry/numeric/minmax.hpp>
+#include <terry/numeric/init.hpp>
+#include <terry/numeric/pow.hpp>
+#include <terry/numeric/sqrt.hpp>
+//#include <terry/numeric/abs.hpp>
 #include <terry/filter/gaussianKernel.hpp>
 #include <terry/filter/convolve.hpp>
 
 #include <tuttle/plugin/memory/OfxAllocator.hpp>
 
 #include <boost/gil/pixel.hpp>
+#include <boost/math/constants/constants.hpp>
 
 #include <math.h>
-//#define M_PI        3.14159265358979323846264338327950288   /* pi */
+
 
 
 namespace tuttle {
@@ -66,30 +74,20 @@ private:
 	
 };
 
+
 template<class View>
 AwaProcess<View>::AwaProcess( AwaPlugin& effect )
-	: ImageGilFilterProcessor<View>( effect, eImageOrientationIndependant )
-	, _plugin( effect )
+: ImageGilFilterProcessor<View>( effect, eImageOrientationIndependant )
+, _plugin( effect )
 {
-    
+this->setNoMultiThreading();
 }
 
 template <class View>
 void AwaProcess<View>::setup( const OFX::RenderArguments& args )
 {
-	ImageGilFilterProcessor<View>::setup( args );
-	_params = _plugin.getProcessParams( args.renderScale );
-	this->setNoMultiThreading(); 
-
-	//	TUTTLE_COUT_X( 20, "_" );
-	//	TUTTLE_COUT_VAR( _params._size );
-	//	TUTTLE_COUT_VAR2( _params._gilKernelX.size(), _params._gilKernelY.size() );
-	//	std::cout << "x [";
-	//	std::for_each(_params._gilKernelX.begin(), _params._gilKernelX.end(), std::cout << boost::lambda::_1 << ',');
-	//	std::cout << "]" << std::endl;
-	//	std::cout << "y [";
-	//	std::for_each(_params._gilKernelY.begin(), _params._gilKernelY.end(), std::cout << boost::lambda::_1 << ',');
-	//	std::cout << "]" << std::endl;
+ImageGilFilterProcessor<View>::setup( args );
+_params = _plugin.getProcessParams( args.renderScale );
 }
 
 /**
@@ -243,22 +241,11 @@ void AwaProcess<boost::gil::rgba32f_view_t>::multiThreadProcessImages( const Ofx
 			d[i+1][j+1][1] = get_color( src(x,y), green_t() ) - get_color( src(x+i+1,y+j+1), green_t() );
 			d[i+1][j+1][2] = get_color( src(x,y), blue_t() ) - get_color( src(x+i+1,y+j+1), blue_t() );
 			
-	//		K[0] = K[0]+ ( 1 / (1+alpha * ( max( epsilonR*epsilonR, d[i+1][j+1][0]*d[i+1][j+1][0] ) ))) ;
-	//		K[1] = K[1]+ ( 1 / (1+alpha * ( max( epsilonG*epsilonG, d[i+1][j+1][1]*d[i+1][j+1][1] ) ))) ;
-	//		K[2] = K[2]+ ( 1 / (1+alpha * ( max( epsilonB*epsilonB, d[i+1][j+1][2]*d[i+1][j+1][2] ) ))) ;
+			K[0] = K[0]+ ( 1 / (1+alpha * ( max( epsilonR*epsilonR, d[i+1][j+1][0]*d[i+1][j+1][0] ) ))) ;
+			K[1] = K[1]+ ( 1 / (1+alpha * ( max( epsilonG*epsilonG, d[i+1][j+1][1]*d[i+1][j+1][1] ) ))) ;
+			K[2] = K[2]+ ( 1 / (1+alpha * ( max( epsilonB*epsilonB, d[i+1][j+1][2]*d[i+1][j+1][2] ) ))) ;
 			
-			if (max( epsilonR*epsilonR, d[i+1][j+1][0]*d[i+1][j+1][0] ) == epsilonR*epsilonR)
-			{
-			  K[0] = K[0]+1;
-			}	
-			if (max( epsilonG*epsilonG, d[i+1][j+1][1]*d[i+1][j+1][1] ) == epsilonG*epsilonG)
-			{
-			  K[1] = K[1]+1;
-			}
-			if (max( epsilonB*epsilonB, d[i+1][j+1][2]*d[i+1][j+1][2] ) == epsilonB*epsilonB)
-			{
-			  K[2] = K[2]+1;
-			}
+			
 		    }    
 		}
 		K[0] = 1/K[0];
