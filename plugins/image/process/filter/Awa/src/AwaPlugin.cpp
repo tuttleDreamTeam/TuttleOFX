@@ -19,6 +19,8 @@ AwaPlugin::AwaPlugin( OfxImageEffectHandle handle )
 	_paramEpsilonR   = fetchDoubleParam( kParamEpsilonR );
 	_paramEpsilonG   = fetchDoubleParam( kParamEpsilonG );
 	_paramEpsilonB   = fetchDoubleParam( kParamEpsilonB );
+	
+	_paramNoiseEstimation = fetchBooleanParam( kParamNoiseEstimation );
   
 	_paramSize   = fetchDouble2DParam( kParamSize );
 	_paramBorder = fetchChoiceParam( kParamBorder );
@@ -36,6 +38,8 @@ AwaProcessParams<AwaPlugin::Scalar> AwaPlugin::getProcessParams( const OfxPointD
 	params._epsilonR = _paramEpsilonR->getValue();
 	params._epsilonG = _paramEpsilonG->getValue();
 	params._epsilonB = _paramEpsilonB->getValue();
+	
+	params._noiseEstimation = _paramNoiseEstimation->getValue();
 	
 	params._size   = ofxToGil( _paramSize->getValue() ) * ofxToGil( renderScale  );
 	params._border = static_cast<EParamBorder>( _paramBorder->getValue() );
@@ -65,17 +69,17 @@ AwaProcessParams<AwaPlugin::Scalar> AwaPlugin::getProcessParams( const OfxPointD
 	return params;
 }
 
-/*
-   void BlurPlugin::changedParam( const OFX::InstanceChangedArgs &args, const std::string &paramName )
+
+   void AwaPlugin::changedParam( const OFX::InstanceChangedArgs &args, const std::string &paramName )
    {
-    if( paramName == kHelpButton )
-    {
-        sendMessage( OFX::Message::eMessageMessage,
-                     "", // No XML resources
-                     kHelpString );
-    }
+//     if( paramName == kHelpButton )
+//     {
+//         sendMessage( OFX::Message::eMessageMessage,
+//                      "", // No XML resources
+//                      kHelpString );
+//     }
    }
- */
+ 
 
 bool AwaPlugin::getRegionOfDefinition( const OFX::RegionOfDefinitionArguments& args, OfxRectD& rod )
 {

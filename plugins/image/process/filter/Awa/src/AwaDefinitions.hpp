@@ -7,17 +7,20 @@ namespace tuttle {
 namespace plugin {
 namespace awa {
 
-static const std::string kParamAlpha           = "alpha";  
-static const std::string kParamEpsilonR         = "epsilonR";
-static const std::string kParamEpsilonG         = "epsilonG"; 
-static const std::string kParamEpsilonB         = "epsilonB"; 
-  
-static const std::string kParamSize           = "size";
-static const std::string kParamBorder         = "border";
-static const std::string kParamBorderMirror   = "Mirror";
-static const std::string kParamBorderConstant = "Constant";
-static const std::string kParamBorderBlack    = "Black";
-static const std::string kParamBorderPadded   = "Padded";
+static const std::string kParamAlpha		= "alpha";  
+static const std::string kParamEpsilonR	= "epsilonR";
+static const std::string kParamEpsilonG	= "epsilonG"; 
+static const std::string kParamEpsilonB	= "epsilonB"; 
+ 
+const std::string kParamNoiseEstimation	= "noiseEstimation";
+
+static const std::string kParamSize		= "size";
+static const std::string kParamBorder		= "border";
+static const std::string kParamBorderMirror	= "Mirror";
+static const std::string kParamBorderConstant	= "Constant";
+static const std::string kParamBorderBlack	= "Black";
+static const std::string kParamBorderPadded	= "Padded";
+
 
 enum EParamBorder
 {

@@ -108,6 +108,11 @@ void AwaPluginFactory::describeInContext( OFX::ImageEffectDescriptor& desc,
 	epsilonB->setRange		( 0.0, std::numeric_limits<double>::max() );
 	epsilonB->setDisplayRange	( 0.0, 1.0 );
 	epsilonB->setHint		( "Noise variance in the blue channel." );
+	
+	OFX::BooleanParamDescriptor* noiseEstimation = desc.defineBooleanParam( kParamNoiseEstimation );
+	noiseEstimation->setLabel( "Noise Estimation" );
+	noiseEstimation->setHint( "Noise estimation." );
+	noiseEstimation->setDefault( true );
 		
 	OFX::Double2DParamDescriptor* size = desc.defineDouble2DParam( kParamSize );
 	size->setLabel( "Size" );

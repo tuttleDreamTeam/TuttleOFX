@@ -88,7 +88,7 @@ void AwaProcess<View>::setup( const OFX::RenderArguments& args )
 }
 
 template<class View, class P>
-void noiseEstimation( View& src, P& noise)
+void noiseEstimationProcess( View& src, P& noise)
 {
   using namespace terry;
   using namespace terry::numeric;
@@ -123,8 +123,6 @@ void noiseEstimation( View& src, P& noise)
   double normalizeFactor = std::sqrt( boost::math::constants::pi<double>() / 2.0 ) / ( 6.0 * ( src.width() - 2.0 ) * ( src.height() - 2.0 ) ); 
   
   noise = pixel_multiplies_scalar_t<P, double>() ( sum, normalizeFactor );
-  
-  P noise2 = pixel_pow_t< P, 2 >()( noise );	//noise²
   
   TUTTLE_COUT_VAR3( noise[0], noise[1], noise[2] );
 }
@@ -189,7 +187,8 @@ void AwaProcess<boost::gil::rgba32f_view_t>::multiThreadProcessImages( const Ofx
 	P p ; // Output/Denoised pixel
 	P noise ; // Noise Estimation
 	
-	noiseEstimation( src, noise) ;
+	noiseEstimationProcess( src, noise) ;
+	P noise2 = pixel_pow_t< P, 2 >()( noise ); // noise²
 	
 	TUTTLE_COUT_VAR3( noise[0], noise[1], noise[2] );
 		
@@ -217,8 +216,11 @@ void AwaProcess<boost::gil::rgba32f_view_t>::multiThreadProcessImages( const Ofx
 			// K +=  1 / (1+alpha * ( max( epsilon², diff² ) )) ;	
 			diff2 = pixel_pow_t< P, 2 >()( diff );
 			
-			pixel_assign_max_t< P, P >()( epsilon2, diff2 );
-// 			pixel_assign_max_t< P, P >()( noise2, diff2 );
+			
+			if (  _params._noiseEstimation )
+			  pixel_assign_max_t< P, P >()( noise2, diff2 );
+			else 
+			  pixel_assign_max_t< P, P >()( epsilon2, diff2 );			
 			
 			P pMax = pixel_multiplies_scalar_t< P, double >( )( diff2 , alpha );
 			pixel_plus_assign_t< P, P >( )( ones, pMax );	
@@ -240,8 +242,10 @@ void AwaProcess<boost::gil::rgba32f_view_t>::multiThreadProcessImages( const Ofx
 			diff = pixel_minus_t< P, P, P >( )( src( x, y ), src( x + i - 1, y + j - 1 ) );	
 			diff2 = pixel_pow_t< P, 2 >()( diff );
 
-			pixel_assign_max_t< P, P >()( epsilon2, diff2 );
-// 			pixel_assign_max_t< P, P >()( noise2, d2 );
+ 			if (  _params._noiseEstimation )
+			  pixel_assign_max_t< P, P >()( noise2, diff2 );
+			else
+			  pixel_assign_max_t< P, P >()( epsilon2, diff2 );
 
 			P pMax = pixel_multiplies_scalar_t< P, double >( )( diff2 , alpha );
 			pixel_plus_assign_t< P, P >( )( ones, pMax );
