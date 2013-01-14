@@ -83,9 +83,52 @@ this->setNoMultiThreading();
 template <class View>
 void AwaProcess<View>::setup( const OFX::RenderArguments& args )
 {
-ImageGilFilterProcessor<View>::setup( args );
-_params = _plugin.getProcessParams( args.renderScale );
+    ImageGilFilterProcessor<View>::setup( args );
+    _params = _plugin.getProcessParams( args.renderScale );
 }
+
+template<class View, class P>
+void noiseEstimation( View& src, P& noise)
+{
+  using namespace terry;
+  using namespace terry::numeric;
+
+  P laplacian ;
+  P sum   = pixel_zeros< P >(); // laplacian
+  noise = pixel_zeros< P >();	// noise estimation
+  
+  double laplace_mask[3][3] = {{1.0, -2.0, 1.0},
+				{-2.0, 4.0, -2.0},
+				{1.0, -2.0, 1.0}};
+  
+  for(int y = 1; y < src.height()-1; y++ )
+  {
+      for(int x = 1; x < src.width()-1; x++ )
+      {
+	  laplacian = pixel_zeros< P >();
+
+	  for(int i = 0; i <= 2; i++ )
+	  {
+	      for(int j = 0; j <= 2; j++ )
+	      {      
+		//laplacian += laplace_mask[i][j] * src( x + i, y + j ); 
+		pixel_plus_assign_t<P, P>( )( pixel_multiplies_scalar_t<P, double>() ( src( x + i -1, y + j -1 ), laplace_mask[i-1][j-1] ), laplacian );		
+	      }
+	  } 		
+	  pixel_plus_assign_t<P, P>( )( pixel_abs_t< P >()( laplacian ), sum ); // sum += abs( laplacian );
+      }
+  }
+  
+  //noise = (sqrt(pi/2.0))*(1.0/(6.0*(src.width() - 2.0)*(src.height() - 2.0))) * sum ;	 
+  double normalizeFactor = std::sqrt( boost::math::constants::pi<double>() / 2.0 ) / ( 6.0 * ( src.width() - 2.0 ) * ( src.height() - 2.0 ) ); 
+  
+  noise = pixel_multiplies_scalar_t<P, double>() ( sum, normalizeFactor );
+  
+  P noise2 = pixel_pow_t< P, 2 >()( noise );	//noise²
+  
+  TUTTLE_COUT_VAR3( noise[0], noise[1], noise[2] );
+}
+
 
 /**
  * @brief Function called by rendering thread each time a process must be done.
@@ -144,43 +187,11 @@ void AwaProcess<boost::gil::rgba32f_view_t>::multiThreadProcessImages( const Ofx
 	
 	P K ; // Normalization constant
 	P p ; // Output/Denoised pixel
-	P laplacian ;
-	P sum   = pixel_zeros< P >(); // laplacian
- 	P noise = pixel_zeros< P >();	// noise estimation
+	P noise ; // Noise Estimation
 	
-	double laplace_mask[3][3] = {{1.0, -2.0, 1.0},
-				      {-2.0, 4.0, -2.0},
-				      {1.0, -2.0, 1.0}};
-	
-	// Noise estimation
-	
-	for(int y = 1; y < src.height()-1; y++ )
-	{
-	    for(int x = 1; x < src.width()-1; x++ )
-	    {
-		laplacian = pixel_zeros< P >();
-
-		for(int i = 0; i <= 2; i++ )
-		{
-		    for(int j = 0; j <= 2; j++ )
-		    {      
-		      //laplacian += laplace_mask[i][j] * src( x + i, y + j ); 
-		      pixel_plus_assign_t<P, P>( )( pixel_multiplies_scalar_t<P, double>() ( src( x + i -1, y + j -1 ), laplace_mask[i-1][j-1] ), laplacian );		
-		    }
- 		} 		
- 		pixel_plus_assign_t<P, P>( )( pixel_abs_t< P >()( laplacian ), sum ); // sum += abs( laplacian );
-	    }
-	}
-	
-	//noise = (sqrt(pi/2.0))*(1.0/(6.0*(src.width() - 2.0)*(src.height() - 2.0))) * sum ;	 
-	double normalizeFactor = std::sqrt( boost::math::constants::pi<double>() / 2.0 ) / ( 6.0 * ( src.width() - 2.0 ) * ( src.height() - 2.0 ) ); 
-	
-	noise = pixel_multiplies_scalar_t<P, double>() ( sum, normalizeFactor );
-	
-	P noise2 = pixel_pow_t< P, 2 >()( noise );	//noise²
+	noiseEstimation( src, noise) ;
 	
 	TUTTLE_COUT_VAR3( noise[0], noise[1], noise[2] );
-
 		
 	// AWA process
 	
