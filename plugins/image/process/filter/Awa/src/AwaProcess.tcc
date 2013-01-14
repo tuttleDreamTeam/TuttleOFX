@@ -250,8 +250,18 @@ void AwaProcess<boost::gil::rgba32f_view_t>::multiThreadProcessImages( const Ofx
 	}
 	
 	// to replace matlab's "padarray" (temporary solution):
-	
-	//...
+
+	for( int x = 0; x < src.width(); x++ )
+	{
+		dst( x, 0 ) = src( x, 0 );
+		dst( x, src.height() - 1 ) = src( x, src.height() - 1 );
+	}
+
+	for( int y = 0; y < src.height(); y++ )
+	{
+		dst( 0, y ) = src( 0, y );
+		dst( src.width() - 1, y ) = src( src.width() - 1, y );
+	}
 	
 }
 
