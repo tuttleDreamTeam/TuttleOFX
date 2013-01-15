@@ -26,6 +26,10 @@ AwaPlugin::AwaPlugin( OfxImageEffectHandle handle )
 	_paramBorder = fetchChoiceParam( kParamBorder );
 	_paramNormalizedKernel = fetchBooleanParam( kParamNormalizedKernel );
 	_paramKernelEpsilon = fetchDoubleParam( kParamKernelEpsilon );
+	
+	_paramEpsilonR        ->setIsSecretAndDisabled( _paramNoiseEstimation->getValue() );
+	_paramEpsilonG        ->setIsSecretAndDisabled( _paramNoiseEstimation->getValue() );
+	_paramEpsilonB        ->setIsSecretAndDisabled( _paramNoiseEstimation->getValue() );
 }
 
 AwaProcessParams<AwaPlugin::Scalar> AwaPlugin::getProcessParams( const OfxPointD& renderScale ) const
