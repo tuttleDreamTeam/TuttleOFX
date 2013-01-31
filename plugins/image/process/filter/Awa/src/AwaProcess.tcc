@@ -88,7 +88,7 @@ void AwaProcess<View>::setup( const OFX::RenderArguments& args )
 }
 
 template<class View, class P>
-void edgeDetectionEstimationProcess( View& src, P& noise, View& processingSrc)
+void edgeDetectionEstimationProcess( View& src, View& processingSrc)
 {
     using namespace terry;
     using namespace terry::numeric;
@@ -104,7 +104,8 @@ void edgeDetectionEstimationProcess( View& src, P& noise, View& processingSrc)
     double Gy_mask[3][3] = {	{1.0, 2.0, 1.0},
 				{0.0, 0.0, 0.0},
 				{-1.0, -2.0, -1.0}};
-  
+    
+    // process Sobel of src in proccessingSrc
     for(int y = 1; y < processingSrc.height()-1; y++ )
     {
 	for(int x = 1; x < processingSrc.width()-1; x++ )
@@ -126,6 +127,19 @@ void edgeDetectionEstimationProcess( View& src, P& noise, View& processingSrc)
 	    pixel_assigns_t< P, P >()( pixel_sqrt_t<P, P>()( pixel_plus_t< P, P, P >( )( pixel_pow_t< P, 2 >()( Gx ) , pixel_pow_t< P, 2 >()( Gy ) ) ), processingSrc(x,y) );
 	}
     }
+    
+    // histogram of processingSrc
+    P maxHist ;
+    maxHist = pixel_zeros< P >() ;
+    for(int y = 1; y < processingSrc.height()-1; y++ )
+    {
+	for(int x = 1; x < processingSrc.width()-1; x++ )
+	{
+	    maxHist = pixel_assign_max_t< P, P >()( processingSrc(x,y), maxHist );
+	}
+    }    
+    TUTTLE_COUT_VAR3( maxHist[0], maxHist[1], maxHist[2] ) ;
+    
 }
   
 template<class View, class P>
@@ -224,6 +238,7 @@ void AwaProcess<boost::gil::rgba32f_view_t>::multiThreadProcessImages( const Ofx
       OFX::EPixelComponent srcComponents = img->getPixelComponents();
 
       TUTTLE_COUT_VAR2( srcBitDepth, srcComponents );
+
       
       typedef rgba32f_pixel_t P;
       
@@ -238,11 +253,11 @@ void AwaProcess<boost::gil::rgba32f_view_t>::multiThreadProcessImages( const Ofx
       P p ; // Output/Denoised pixel
       P noise ; // Noise Estimation
       
-      noiseEstimationProcess( src, noise) ;
       
-      //edgeDetectionEstimationProcess( src, noise, dst) ;
+      //edgeDetectionEstimationProcess< boost::gil::rgba32f_view_t, P >( src, dst) ;
       //copy_and_convert_pixels( processingSrc, dst );
 
+      noiseEstimationProcess( src, noise) ;
       P noise2 = pixel_pow_t< P, 2 >()( noise ); // noise²
       
       TUTTLE_COUT_VAR3( noise[0], noise[1], noise[2] );
