@@ -88,6 +88,47 @@ void AwaProcess<View>::setup( const OFX::RenderArguments& args )
 }
 
 template<class View, class P>
+void edgeDetectionEstimationProcess( View& src, P& noise, View& processingSrc)
+{
+    using namespace terry;
+    using namespace terry::numeric;
+  
+     P Gx   = pixel_zeros< P >();
+     P Gy   = pixel_zeros< P >();
+     P laplacian   = pixel_zeros< P >();
+      
+    double Gx_mask[3][3] = {	{-1.0, 0., 1.0},
+				{-2.0, 0., 2.0},
+				{-1.0, 0., 1.0}};
+				
+    double Gy_mask[3][3] = {	{1.0, 2.0, 1.0},
+				{0.0, 0.0, 0.0},
+				{-1.0, -2.0, -1.0}};
+  
+    for(int y = 1; y < processingSrc.height()-1; y++ )
+    {
+	for(int x = 1; x < processingSrc.width()-1; x++ )
+	{
+	    Gx = pixel_zeros< P >();
+	    Gy = pixel_zeros< P >();
+	    laplacian = pixel_zeros< P >();
+
+	    for(int i = 0; i <= 2; i++ )
+	    {
+		for(int j = 0; j <= 2; j++ )
+		{   
+		  //sobel += sobel_mask[i][j] * src( x + i, y + j ); 
+		  pixel_plus_assign_t<P, P>( )( pixel_multiplies_scalar_t<P, double>() ( src( x + i -1, y + j -1 ), Gx_mask[i][j] ), Gx );	
+		  pixel_plus_assign_t<P, P>( )( pixel_multiplies_scalar_t<P, double>() ( src( x + i -1, y + j -1 ), Gy_mask[i][j] ), Gy );	  		  
+		}
+	    } 		
+	    // sobel(x,y) = sqrt( Gx(x,y)² + Gy(x,y)² ) ;
+	    pixel_assigns_t< P, P >()( pixel_sqrt_t<P, P>()( pixel_plus_t< P, P, P >( )( pixel_pow_t< P, 2 >()( Gx ) , pixel_pow_t< P, 2 >()( Gy ) ) ), processingSrc(x,y) );
+	}
+    }
+}
+  
+template<class View, class P>
 void noiseEstimationProcess( View& src, P& noise)
 {
   using namespace terry;
@@ -112,7 +153,7 @@ void noiseEstimationProcess( View& src, P& noise)
 	      for(int j = 0; j <= 2; j++ )
 	      {      
 		//laplacian += laplace_mask[i][j] * src( x + i, y + j ); 
-		pixel_plus_assign_t<P, P>( )( pixel_multiplies_scalar_t<P, double>() ( src( x + i -1, y + j -1 ), laplace_mask[i-1][j-1] ), laplacian );		
+		pixel_plus_assign_t<P, P>( )( pixel_multiplies_scalar_t<P, double>() ( src( x + i -1, y + j -1 ), laplace_mask[i][j] ), laplacian );		
 	      }
 	  } 		
 	  pixel_plus_assign_t<P, P>( )( pixel_abs_t< P >()( laplacian ), sum ); // sum += abs( laplacian );
@@ -157,129 +198,144 @@ void AwaProcess<View>::multiThreadProcessImages( const OfxRectI& procWindowRoW )
 template<>
 void AwaProcess<boost::gil::rgba32f_view_t>::multiThreadProcessImages( const OfxRectI& procWindowRoW )
 {
-	using namespace terry;
-	using namespace terry::filter;
-	using namespace terry::numeric;
-	
-	const OfxRectI procWindowOutput = this->translateRoWToOutputClipCoordinates( procWindowRoW );
-	const OfxPointI procWindowSize  = {
-		procWindowRoW.x2 - procWindowRoW.x1,
-		procWindowRoW.y2 - procWindowRoW.y1
-	};
-	
-	boost::gil::rgba32f_view_t src = subimage_view( this->_srcView, procWindowOutput.x1, procWindowOutput.y1,
-	                          procWindowSize.x,
-	                          procWindowSize.y );	
-	
-	boost::gil::rgba32f_view_t dst = subimage_view( this->_dstView, procWindowOutput.x1, procWindowOutput.y1,
-	                          procWindowSize.x, procWindowSize.y );
-	
-	typedef rgba32f_pixel_t P;
-	
-	P ones ;
-	pixel_ones_t< P >()( ones ) ; // { 1.0, 1.0, 1.0, 1.0}
-	
-	float alpha = _params._alpha ;
-	P epsilon( _params._epsilonR, _params._epsilonG, _params._epsilonB, 1.0 );
-	P epsilon2 = pixel_pow_t< P, 2 >()( epsilon ); // epsilon²
-	
-	P K ; // Normalization constant
-	P p ; // Output/Denoised pixel
-	P noise ; // Noise Estimation
-	
-	noiseEstimationProcess( src, noise) ;
-	P noise2 = pixel_pow_t< P, 2 >()( noise ); // noise²
-	
-	TUTTLE_COUT_VAR3( noise[0], noise[1], noise[2] );
-		
-	// AWA process
-	
-	P diff ; // difference between current pixel and pixel of the support (neighbors)
-	P diff2 ; // diff²
-	P weight ;	// Weight of the neighbors pixels
-	
-	for(int y = 1; y < src.height()-1; y++ )
-	{
-	    for(int x = 1; x < src.width()-1; x++ )
-	    {
-		K = pixel_zeros< P >();		
-		weight = pixel_zeros< P >();
-		
-		for(int i = 0; i <= 2; i++ )
-		{
-		    for(int j = 0; j <= 2; j++ )
-		    {
- 			// diff = src(x,y) - src(x+i-1,y+j-1)
-			diff = pixel_minus_t< P, P, P >( )( src( x, y ), src( x + i - 1, y + j - 1 ) );
-			
-			
-			// K +=  1 / (1+alpha * ( max( epsilon², diff² ) )) ;	
-			diff2 = pixel_pow_t< P, 2 >()( diff );
-			
-			
-			if (  _params._noiseEstimation )
-			  pixel_assign_max_t< P, P >()( noise2, diff2 );
-			else 
-			  pixel_assign_max_t< P, P >()( epsilon2, diff2 );			
-			
-			P pMax = pixel_multiplies_scalar_t< P, double >( )( diff2 , alpha );
-			pixel_plus_assign_t< P, P >( )( ones, pMax );	
-			
-			pMax = pixel_divides_t< P, P, P >()( ones, pMax );
-			pixel_plus_assign_t< P, P >( )( pMax , K );
-		    }    
-		}
-		
-		K = pixel_divides_t< P, P, P >()( ones, K );	// K = 1/K
-	
-		p = pixel_zeros< P >();
-		
-		for(int i = 0; i <= 2; i++ )
-		{
-		    for(int j = 0; j <= 2; j++ )
-		    {
+      using namespace terry;
+      using namespace terry::filter;
+      using namespace terry::numeric;
+      
+      const OfxRectI procWindowOutput = this->translateRoWToOutputClipCoordinates( procWindowRoW );
+      const OfxPointI procWindowSize  = {
+	      procWindowRoW.x2 - procWindowRoW.x1,
+	      procWindowRoW.y2 - procWindowRoW.y1
+      };
+      
+      boost::gil::rgba32f_view_t src = subimage_view( this->_srcView, procWindowOutput.x1, procWindowOutput.y1,
+				procWindowSize.x,
+				procWindowSize.y );	
+      
+      boost::gil::rgba32f_view_t dst = subimage_view( this->_dstView, procWindowOutput.x1, procWindowOutput.y1,
+				procWindowSize.x, procWindowSize.y );
+      
+      boost::gil::rgba32f_view_t processingSrc = subimage_view( this->_srcView, procWindowOutput.x1, procWindowOutput.y1, 
+								procWindowSize.x, procWindowSize.y );
+      
+      // Make sure bit depths are same
+      OFX::Image *img = _plugin._clipSrc->fetchImage(0);
+      OFX::EBitDepth srcBitDepth = img->getPixelDepth();
+      OFX::EPixelComponent srcComponents = img->getPixelComponents();
+
+      TUTTLE_COUT_VAR2( srcBitDepth, srcComponents );
+      
+      typedef rgba32f_pixel_t P;
+      
+      P ones ;
+      pixel_ones_t< P >()( ones ) ; // { 1.0, 1.0, 1.0, 1.0}
+      
+      float alpha = _params._alpha ;
+      P epsilon( _params._epsilonR, _params._epsilonG, _params._epsilonB, 1.0 );
+      P epsilon2 = pixel_pow_t< P, 2 >()( epsilon ); // epsilon²
+      
+      P K ; // Normalization constant
+      P p ; // Output/Denoised pixel
+      P noise ; // Noise Estimation
+      
+      noiseEstimationProcess( src, noise) ;
+      
+      //edgeDetectionEstimationProcess( src, noise, dst) ;
+      //copy_and_convert_pixels( processingSrc, dst );
+
+      P noise2 = pixel_pow_t< P, 2 >()( noise ); // noise²
+      
+      TUTTLE_COUT_VAR3( noise[0], noise[1], noise[2] );
+	      
+      // AWA process
+      
+      P diff ; // difference between current pixel and pixel of the support (neighbors)
+      P diff2 ; // diff²
+      P weight ;	// Weight of the neighbors pixels
+      
+      for(int y = 1; y < src.height()-1; y++ )
+      {
+	  for(int x = 1; x < src.width()-1; x++ )
+	  {
+	      K = pixel_zeros< P >();		
+	      weight = pixel_zeros< P >();
+	      
+	      for(int i = 0; i <= 2; i++ )
+	      {
+		  for(int j = 0; j <= 2; j++ )
+		  {
+		      // diff = src(x,y) - src(x+i-1,y+j-1)
+		      diff = pixel_minus_t< P, P, P >( )( src( x, y ), src( x + i - 1, y + j - 1 ) );
+		      
+		      
+		      // K +=  1 / (1+alpha * ( max( epsilon², diff² ) )) ;	
+		      diff2 = pixel_pow_t< P, 2 >()( diff );
+		      
+		      
+		      if (  _params._noiseEstimation )
+			pixel_assign_max_t< P, P >()( noise2, diff2 );
+		      else 
+			pixel_assign_max_t< P, P >()( epsilon2, diff2 );			
+		      
+		      P pMax = pixel_multiplies_scalar_t< P, double >( )( diff2 , alpha );
+		      pixel_plus_assign_t< P, P >( )( ones, pMax );	
+		      
+		      pMax = pixel_divides_t< P, P, P >()( ones, pMax );
+		      pixel_plus_assign_t< P, P >( )( pMax , K );
+		  }    
+	      }
+	      
+	      K = pixel_divides_t< P, P, P >()( ones, K );	// K = 1/K
+      
+	      p = pixel_zeros< P >();
+	      
+	      for(int i = 0; i <= 2; i++ )
+	      {
+		  for(int j = 0; j <= 2; j++ )
+		  {
 // 			weight = K / ( 1 / (1+alpha * ( max( noise², diff² ) ))) ;
-			diff = pixel_minus_t< P, P, P >( )( src( x, y ), src( x + i - 1, y + j - 1 ) );	
-			diff2 = pixel_pow_t< P, 2 >()( diff );
+		      diff = pixel_minus_t< P, P, P >( )( src( x, y ), src( x + i - 1, y + j - 1 ) );	
+		      diff2 = pixel_pow_t< P, 2 >()( diff );
 
- 			if (  _params._noiseEstimation )
-			  pixel_assign_max_t< P, P >()( noise2, diff2 );
-			else
-			  pixel_assign_max_t< P, P >()( epsilon2, diff2 );
+		      if (  _params._noiseEstimation )
+			pixel_assign_max_t< P, P >()( noise2, diff2 );
+		      else
+			pixel_assign_max_t< P, P >()( epsilon2, diff2 );
 
-			P pMax = pixel_multiplies_scalar_t< P, double >( )( diff2 , alpha );
-			pixel_plus_assign_t< P, P >( )( ones, pMax );
-			pMax = pixel_divides_t< P, P, P >()( ones, pMax );
+		      P pMax = pixel_multiplies_scalar_t< P, double >( )( diff2 , alpha );
+		      pixel_plus_assign_t< P, P >( )( ones, pMax );
+		      pMax = pixel_divides_t< P, P, P >()( ones, pMax );
 
-			weight = pixel_divides_t< P, P, P >()( K, pMax );					
+		      weight = pixel_divides_t< P, P, P >()( K, pMax );					
 
-			//p += w * src(x+i-1,y+j-1) ;
-			pixel_plus_assign_t<P, P>( )( pixel_multiplies_t< P, P, P >()( weight, src( x + i - 1, y + j - 1 ) ), p );	
-		    }    
-		}
+		      //p += w * src(x+i-1,y+j-1) ;
+		      pixel_plus_assign_t<P, P>( )( pixel_multiplies_t< P, P, P >()( weight, src( x + i - 1, y + j - 1 ) ), p );	
+		  }    
+	      }
 
 
- 		// dst(x,y) = p
-		pixel_assigns_t< P, P >()( p, dst( x, y ) );
-	    } 
-	}
-	
-	// to replace matlab's "padarray" (temporary solution):
+	      // dst(x,y) = p
+	      pixel_assigns_t< P, P >()( p, dst( x, y ) );
+	      
+	      
+	  } 
+      }
+            
+      // to replace matlab's "padarray" (temporary solution):
 
-	for( int x = 0; x < src.width(); x++ )
-	{
-		dst( x, 0 ) = src( x, 0 );
-		dst( x, src.height() - 1 ) = src( x, src.height() - 1 );
-	}
+      for( int x = 0; x < src.width(); x++ )
+      {
+	      dst( x, 0 ) = src( x, 0 );
+	      dst( x, src.height() - 1 ) = src( x, src.height() - 1 );
+      }
 
-	for( int y = 0; y < src.height(); y++ )
-	{
-		dst( 0, y ) = src( 0, y );
-		dst( src.width() - 1, y ) = src( src.width() - 1, y );
-	}
-	
+      for( int y = 0; y < src.height(); y++ )
+      {
+	      dst( 0, y ) = src( 0, y );
+	      dst( src.width() - 1, y ) = src( src.width() - 1, y );
+      }
+      	
 }
-
 
 
 
